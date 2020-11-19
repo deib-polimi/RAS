@@ -14,7 +14,6 @@ class CTControllerScaleX(Controller):
         self.xc_prec = 0
 
     def control(self, t):
-        users = self.monitoring.getUsers()
         rt = self.monitoring.getRT()
         e = 1/self.setpoint - 1/rt
         xc = float(self.xc_prec + self.BC * e)
