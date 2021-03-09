@@ -1,6 +1,7 @@
 from generators import *
 from controllers import *
 from runner import Runner
+from applications import Application1
 
 appSLA = 0.6
 horizon = 1000
@@ -37,7 +38,7 @@ c10 = CTControllerScaleX(scaleXPeriod, initCores)
 c10.setName("ScaleX")
 
 runner = Runner(horizon, [c1, c2, c5,
-                          c6, c7, c8, c9, c10], monitoringWindow, appSLA)
+                          c6, c7, c8, c9, c10], monitoringWindow, Application1(appSLA))
 
 g = SinGen(500, 700, 200)
 g.setName("SN1")

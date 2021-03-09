@@ -1,5 +1,5 @@
 from generators import Generator
-from application import Application
+from applications import Application
 from numpy import *
 import matplotlib.pyplot as plt
 
