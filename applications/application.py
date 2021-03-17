@@ -1,6 +1,7 @@
 import random
 
 class Application:
+    
     def __init__(self, sla, disturbance=0.1):
         self.cores = 1
         self.RT = 0.0
