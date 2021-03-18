@@ -1,3 +1,4 @@
+from .controlqueuing import OPTCTRL
 from .controltheoretical import CTControllerScaleX
 from .rulebasedcontroller import RBController, RBControllerWithCooldown
 from .staticcontroller import StaticController
