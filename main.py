@@ -3,8 +3,9 @@ from controllers import *
 from runner import Runner
 from applications import ApplicationMVA
 
-appSLA = 3.6
-horizon = 200
+stime=3.0
+appSLA = stime*2
+horizon = 300
 monitoringWindow = 1
 initCores = 1
 
@@ -14,9 +15,9 @@ ctnPeriod = 30
 
 # c0 = StaticController(vmPeriod, 1)
 # c0.setName("Static (1)")
-c1 = RBControllerWithCooldown(vmPeriod, initCores, step=1, cooldown=10)
+c1 = RBControllerWithCooldown(vmPeriod, initCores, step=1, cooldown=30)
 c1.setName("SimpleVM-RuleBased")
-c11 = OPTCTRL( vmPeriod, init_cores=initCores, st=1.0,stime=3.0)
+c11 = OPTCTRL( vmPeriod, init_cores=initCores, st=1.0,stime=stime)
 c11.setName("OPTCTRL")
 # c2 = RBControllerWithCooldown(ctnPeriod, initCores, step=1, cooldown=0)
 # c2.setName("SimpleCR")
@@ -42,7 +43,7 @@ c11.setName("OPTCTRL")
 # runner = Runner(horizon, [c1, c2, c5,
                           # c6, c7, c8, c9, c10], monitoringWindow, Application1(appSLA))
                           
-runner = Runner(horizon, [c11,c1], monitoringWindow, ApplicationMVA(sla=appSLA,stime=2.0))
+runner = Runner(horizon, [c11,c1], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime))
 
 g = SinGen(200, 201, 50)
 g.setName("SN1")
