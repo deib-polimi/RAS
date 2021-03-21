@@ -2,12 +2,13 @@ from generators import *
 from controllers import *
 from runner import Runner
 from applications import ApplicationMVA
+from math import ceil
 
 stime=1.0 # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
-appSLA = stime*1
-horizon = 200
+appSLA = stime*3
+horizon = 500
 monitoringWindow = 1
-initCores = 200
+initCores = int(ceil(226/appSLA)) #condizione iniziale che assicura un punto di partenza stabile per il sistema
 
 scaleXPeriod = 1
 vmPeriod = 1
@@ -43,7 +44,7 @@ c8.setName("TargetCR")
 # runner = Runner(horizon, [c1, c2, c5,
                           # c6, c7, c8, c9, c10], monitoringWindow, Application1(appSLA))
                           
-runner = Runner(horizon, [c1,c11], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
+runner = Runner(horizon, [c1,c8,c11], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
 
 g = SinGen(200, 201, 50)
 g.setName("SN1")
