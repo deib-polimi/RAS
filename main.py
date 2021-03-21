@@ -33,8 +33,8 @@ c11.setName("OPTCTRL")
 # c6.setName("StepCR")
 # c7 = TargetController(vmPeriod, initCores, cooldown=0)
 # c7.setName("TargetVM")
-# c8 = TargetController(ctnPeriod, initCores, cooldown=0)
-# c8.setName("TargetCR")
+c8 = TargetController(ctnPeriod, initCores, cooldown=0)
+c8.setName("TargetCR")
 # c9 = TargetController(scaleXPeriod, initCores, cooldown=0)
 # c9.setName("TargetFast")
 # c10 = CTControllerScaleX(scaleXPeriod, initCores)
@@ -47,6 +47,7 @@ runner = Runner(horizon, [c1,c11], monitoringWindow, ApplicationMVA(sla=appSLA,s
 
 g = SinGen(200, 201, 50)
 g.setName("SN1")
+c11.generator=g; #quando questo attributo e' !=None uso la filosofia open loop per il controllo ottimo
 runner.run(g)
 
 # g = SinGen(1000, 1000, 100)

@@ -100,5 +100,5 @@ class ApplicationMVA(Application):
         self.writeJMVAModel()
         self.computeMVART()
         self.readModel()
-        #print(req,int(np.ceil(self.cores)),float(self.getRT()))
+        print(req,int(np.ceil(self.cores)),float(self.getRT()))
         return float(self.getRT())

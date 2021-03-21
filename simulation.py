@@ -28,7 +28,7 @@ class Simulation:
             self.app.cores = cores
             self.total_cores += cores
             if self.monitoring.getRT() > self.app.sla:
-                self.violations += 1
+                self.violations += abs(self.monitoring.getRT()-self.app.sla)
 
     def log(self):
         rts = array(self.monitoring.allRts)
