@@ -33,7 +33,7 @@ class OPTCTRL(Controller):
         
     def control(self, t):
         rt = self.monitoring.getRT()
-        self.cores=np.ceil(self.OPTController(self.stime, self.sla, self.monitoring.users[-1]))
+        self.cores=np.ceil(self.OPTController(self.stime, self.setpoint, int(self.monitoring.getUsers())))
 
     def __str__(self):
         return super().__str__() + " OPTCTRL: %.2f, l: %.2f h: %.2f " % (self.step, self.l, self.h)

@@ -3,11 +3,11 @@ from controllers import *
 from runner import Runner
 from applications import ApplicationMVA
 
-stime=3.0
-appSLA = stime*2
-horizon = 300
+stime=1.0 # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
+appSLA = stime*1
+horizon = 200
 monitoringWindow = 1
-initCores = 1
+initCores = 200
 
 scaleXPeriod = 1
 vmPeriod = 1
@@ -15,9 +15,9 @@ ctnPeriod = 30
 
 # c0 = StaticController(vmPeriod, 1)
 # c0.setName("Static (1)")
-c1 = RBControllerWithCooldown(vmPeriod, initCores, step=1, cooldown=30)
+c1 = RBControllerWithCooldown(vmPeriod, initCores, step=1, cooldown=0)
 c1.setName("SimpleVM-RuleBased")
-c11 = OPTCTRL( vmPeriod, init_cores=initCores, st=1.0,stime=stime)
+c11 = OPTCTRL( vmPeriod, init_cores=initCores, st=1,stime=stime)
 c11.setName("OPTCTRL")
 # c2 = RBControllerWithCooldown(ctnPeriod, initCores, step=1, cooldown=0)
 # c2.setName("SimpleCR")
@@ -43,7 +43,7 @@ c11.setName("OPTCTRL")
 # runner = Runner(horizon, [c1, c2, c5,
                           # c6, c7, c8, c9, c10], monitoringWindow, Application1(appSLA))
                           
-runner = Runner(horizon, [c11,c1], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime))
+runner = Runner(horizon, [c1,c11], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
 
 g = SinGen(200, 201, 50)
 g.setName("SN1")

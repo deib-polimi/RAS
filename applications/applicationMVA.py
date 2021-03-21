@@ -13,8 +13,9 @@ class ApplicationMVA(Application):
     modelPath="%s/JMT/tier.jmva"%(os.path.dirname(os.path.dirname(pathlib.Path(__file__).absolute())))
     JMTPath="%s/JMT/JMT-singlejar-1.1.1.jar"%(os.path.dirname(os.path.dirname(pathlib.Path(__file__).absolute())))
     
-    def __init__(self,sla=1.0, disturbance=0.0,stime=1.0):
+    def __init__(self,sla=1.0, disturbance=0.0,stime=1.0,init_cores=1):
         super().__init__(sla,disturbance)
+        self.cores=init_cores
         self.stime=stime
         self.model=None
         self.tree=None
@@ -92,7 +93,6 @@ class ApplicationMVA(Application):
         self.tree.write(self.modelPath)
     
     def __computeRT__(self, req):
-        print(req)
         self.readModel()
         self.updateNUsers(int(req))
         self.updateNServers(int(np.ceil(self.cores)))
@@ -100,11 +100,5 @@ class ApplicationMVA(Application):
         self.writeJMVAModel()
         self.computeMVART()
         self.readModel()
+        #print(req,int(np.ceil(self.cores)),float(self.getRT()))
         return float(self.getRT())
-
-
-if __name__ == "__main__":
-    # some test cases
-    app=ApplicationMVA()
-    app.cores=1
-    print(app.__computeRT__(3))
