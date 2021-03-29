@@ -21,6 +21,7 @@ class Simulation:
         self.total_cores = 0
         self.violations = 0
         for t in range(0, self.horizon):
+            print(t)
             users = self.generator.tick(t)
             rt = self.app.setRT(users)
             self.monitoring.tick(t, rt, users, self.app.cores)
@@ -28,7 +29,9 @@ class Simulation:
             self.app.cores = cores
             self.total_cores += cores
             if self.monitoring.getRT() > self.app.sla:
-                self.violations += abs(self.monitoring.getRT()-self.app.sla)
+                #self.violations += abs(self.monitoring.getRT()-self.app.sla)
+                self.violations += 1
+
 
     def log(self):
         rts = array(self.monitoring.allRts)

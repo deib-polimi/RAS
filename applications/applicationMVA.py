@@ -14,11 +14,13 @@ class ApplicationMVA(Application):
     JMTPath="%s/JMT/JMT-singlejar-1.1.1.jar"%(os.path.dirname(os.path.dirname(pathlib.Path(__file__).absolute())))
     
     def __init__(self,sla=1.0, disturbance=0.0,stime=1.0,init_cores=1):
-        super().__init__(sla,disturbance)
+        super().__init__(sla,disturbance,init_cores)
         self.cores=init_cores
         self.stime=stime
         self.model=None
         self.tree=None
+        self.reset()
+
         
     
     def getNUsers(self):

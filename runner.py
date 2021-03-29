@@ -18,12 +18,14 @@ class Runner:
             ct.setSLA(self.sla)
             m = Monitoring(self.window)
             ct.setMonitoring(m)
+            ct.setGenerator(gen)
             a = self.app
             s = Simulation(self.horizon, a, gen, m, ct)
             # print(ct)
             s.run()
             self.simulations.append(s)
             ct.reset()
+            a.reset()
             # print()
 
     def log(self):

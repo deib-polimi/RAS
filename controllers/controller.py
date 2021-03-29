@@ -14,6 +14,9 @@ class Controller:
 
     def setMonitoring(self, monitoring):
         self.monitoring = monitoring
+    
+    def setGenerator(self, generator):
+        self.generator = generator
 
     def tick(self, t):
         if not t:
