@@ -9,8 +9,12 @@ from scipy.stats import truncnorm
 import numpy as np
 import uuid
 import matplotlib.pyplot as plt
+if __name__ == "__main__":
+    from application import Application
+else:
+    from .application import Application
 
-class App(object):
+class App():
     serving=None
     backlog=None
     env=None
@@ -21,11 +25,13 @@ class App(object):
     rTime=None
     stdSt=None
     mSt=None
+    isDeterministic=None
 
-    def __init__(self,env,cpuQuota,name,initUsers,mSt,nThreads=-1,stdSt=None):
+    def __init__(self,env,cpuQuota,name,initUsers,mSt,nThreads=-1,stdSt=None,isDeterministic=False):
         
         self.env=env
         self.name=name
+        self.isDeterministic=isDeterministic
         
         self.cpuQuota=cpuQuota
         self.nThreads=nThreads
@@ -85,12 +91,14 @@ class App(object):
 
         
     def doWork(self,app,user):
-        #isTime=np.random.exponential(1.0/app.mSt)
-        isTime=1.0/app.mSt
+        if(self.isDeterministic):
+            isTime=1.0/app.mSt
+        else:
+            isTime=np.random.exponential(1.0/app.mSt)
+        
         #simluate processor sharing
         d=(isTime)*(len(app.serving.items))/app.cpuQuota
         yield app.env.timeout(np.maximum(d,isTime))
-        #yield app.env.timeout(np.maximum(d,1.0/app.mSt))
         
         #record Rtime of this center
         if(user.issueTime is not None):
@@ -99,6 +107,63 @@ class App(object):
             app.rTime.append(app.env.now)
         
         yield app.serving.get()
+        
+
+
+class appsCluster(Application):
+    
+    appNames=None
+    srateAvg=None
+    stdrateAvg=None
+    cpuQuotas=None
+    users=None
+    cluster=None
+    horizon=None
+    monitoringWindow=None
+    isDeterministic=None
+    
+    def __init__(self,appNames,srateAvg,monitoringWindow,horizon,cpuQuotas,isDeterministic=True):
+        self.appNames=appNames
+        self.srateAvg=srateAvg
+        self.users=None# mi aspetto che il numero di utenti venga passoto come prameetro della funzione __computeRT__
+        self.cpuQuotas=cpuQuotas
+        self.stdrateAvg=None
+        self.monitoringWindow=monitoringWindow
+        self.horizon=horizon
+        self.isDeterministic=isDeterministic
+    
+    
+    def deployCluster(self,X0,S,MU,Names,std=None):
+    
+        cluster={};
+        cluster["env"]=simpy.Environment()
+        cluster["apps"]={};
+        
+        #dichiaro tutte le applicazioni del cluster
+        for i in range(len(Names)):
+            initPop=[]
+            for k in range(X0[0,i]):
+                initPop.append(User(uuid.uuid4()))       
+            cluster["apps"][Names[i]]=App(cluster["env"],S[0,i],Names[i],initPop,MU[0,i],isDeterministic=self.isDeterministic)
+            
+        self.cluster=cluster
+    
+    #la differenza rispetto a prima e' che mi aspetto che users sia un vettore con un numero di componentni
+    #pari a len(self.appNames)
+    def __computeRT__(self, users):
+        rtime={}
+        
+        for h in range(self.monitoringWindow):
+            self.deployCluster(users, self.cpuQuotas, self.srateAvg, self.appNames, self.stdrateAvg)
+            self.cluster["env"].run(until=self.horizon)
+            for key,val in enumerate(self.cluster["apps"]):
+                if(not val in rtime):
+                    rtime[val]=[]
+                rtime[val]=rtime[val]+self.cluster["apps"][val].rTime
+        
+        return rtime
+        
+        
 
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=100):
@@ -112,56 +177,39 @@ class User(object):
     def __init__(self,ID,issueTime=0):
         self.ID=ID
         self.issueTime=issueTime;
-        
-def deployCluster(X0,S,MU,Names,std=None):
-    
-    cluster={};
-    cluster["env"]=simpy.Environment()
-    cluster["apps"]={};
-    
-    #dichiaro tutte le applicazioni del cluster
-    for i in range(len(Names)):
-        initPop=[]
-        for k in range(X0[0,i]):
-            initPop.append(User(uuid.uuid4()))       
-        cluster["apps"][Names[i]]=App(cluster["env"],S[0,i],Names[i],initPop,MU[0,i])
-        
-    return cluster
             
     
 if __name__ == "__main__":
-    #numper of users per applications
-    X0=np.matrix([10,3])
-    #reserved cpus quaota per applications
-    cpuQuotas=np.matrix([2.5,0.5])
-    #average service rate per applications
-    stimesAvg=np.matrix([1.0,1.0]);
     #applications names
-    Names=["App1","App2"];
+    Names=["App1","App2","App3"];
+    #average service rate per applications
+    srateAvg=np.matrix([1,1,1]);
+    #numper of users per applications
+    X0=np.matrix([1,1,1])
+    #reserved cpus quaota per applications
+    cpuQuotas=np.matrix([1,1,1])
     #numper of observation windows
     rep=1;
+    #width of each observation windows
+    T=1.1
     
-    rtime={}
+    cluster=appsCluster(appNames=Names,srateAvg=srateAvg,
+                         monitoringWindow=1,horizon=100,
+                         cpuQuotas=cpuQuotas,isDeterministic=False)
     
-    for r in range(rep):
-        #faccio partire la simulazione per il tempo prestabilito
-        cluster=deployCluster(X0,cpuQuotas,stimesAvg,Names);
-        cluster["env"].run(until=100)
-        for key,val in enumerate(cluster["apps"]):
-            if(not val in rtime):
-                rtime[val]=[]
-            rtime[val]=rtime[val]+cluster["apps"][val].rTime
-        
+    rtime=cluster.__computeRT__(X0)
+    
     fig, axs = plt.subplots(len(rtime),1)
-    
     for key,val in enumerate(rtime):
         print("%s mean=%f max=%f min=%f"%(val,np.mean(rtime[val]),np.max(rtime[val]),np.min(rtime[val])))
         if(len(rtime)>1):
             axs[key].hist(rtime[val],20,density=True, histtype='step',cumulative=True, label='Empirical')    
-            axs[key].set_title('RT dist %s'%(val))
+            axs[key].set_title('ECDF response time of %s'%(val))
         else:
             axs.hist(rtime[val],20,density=True, histtype='step',cumulative=True, label='Empirical')    
             axs.set_title('RT dist %s'%(val))
     
+    fig.tight_layout() # Or equivalently,  "plt.tight_layout()"
+    #fig.subplots_adjust(hspace=0.5)
     plt.show()
     
