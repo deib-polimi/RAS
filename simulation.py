@@ -14,7 +14,6 @@ class Simulation:
         self.horizon = horizon
         self.monitoring = monitoring
         self.violations = 0
-        self.total_cores = 0
         self.name = "%s-%s" % (controller.name, generator.name)
 
     def run(self):
@@ -27,7 +26,6 @@ class Simulation:
             self.monitoring.tick(t, rt, users, self.app.cores)
             cores = self.controller.tick(t)
             self.app.cores = cores
-            self.total_cores += cores
             if self.monitoring.getRT() > self.app.sla:
                 #self.violations += abs(self.monitoring.getRT()-self.app.sla)
                 self.violations += 1

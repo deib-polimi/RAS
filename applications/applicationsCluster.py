@@ -27,8 +27,14 @@ class App():
     mSt=None
     isDeterministic=None
 
+    # env: simulation env
+    # cpuQuota: core
+    # initUsers: list of initial users
+    # mST: avg service rate
+    # nThreads: application threads 
+    # stdST: std service rate
+    # isDetermistic: service rate constant (mST) or not
     def __init__(self,env,cpuQuota,name,initUsers,mSt,nThreads=-1,stdSt=None,isDeterministic=False):
-        
         self.env=env
         self.name=name
         self.isDeterministic=isDeterministic
