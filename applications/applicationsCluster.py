@@ -157,7 +157,7 @@ class appsCluster(Application):
     #la differenza rispetto a prima e' che mi aspetto che users sia un vettore con un numero di componentni
     #pari a len(self.appNames)
     def __computeRT__(self, users):
-        rtime={}
+        rtime=np.zeros([len(self.appNames)])
         
         for h in range(self.monitoringWindow):
             self.deployCluster(users,self.cpuQuotas, self.srateAvg, self.appNames, self.stdrateAvg)
@@ -167,9 +167,7 @@ class appsCluster(Application):
                 self.cluster["env"].run()
                 
             for key,val in enumerate(self.cluster["apps"]):
-                if(not val in rtime):
-                    rtime[val]=[]
-                rtime[val]=rtime[val]+self.cluster["apps"][val].rTime
+                rtime[key]=np.mean(self.cluster["apps"][val].rTime)
         
         return rtime
         
@@ -200,20 +198,9 @@ if __name__ == "__main__":
     cpuQuotas=np.matrix([1,1,1])
     
     cluster=appsCluster(appNames=Names,srateAvg=srateAvg,cpuQuotas=cpuQuotas,isDeterministic=False)
-    
     rtime=cluster.__computeRT__(X0)
     
     fig, axs = plt.subplots(len(rtime),1)
-    for key,val in enumerate(rtime):
-        print("%s mean=%f max=%f min=%f"%(val,np.mean(rtime[val]),np.max(rtime[val]),np.min(rtime[val])))
-        if(len(rtime)>1):
-            axs[key].hist(rtime[val],20,density=True, histtype='step',cumulative=True, label='Empirical')    
-            axs[key].set_title('ECDF response time of %s'%(val))
-        else:
-            axs.hist(rtime[val],20,density=True, histtype='step',cumulative=True, label='Empirical')    
-            axs.set_title('RT dist %s'%(val))
-    
-    fig.tight_layout() # Or equivalently,  "plt.tight_layout()"
-    #fig.subplots_adjust(hspace=0.5)
-    #plt.show()
+    for i in range(rtime.shape[0]):
+        print("%s mean=%f"%(cluster.appNames[i],rtime[i]))
     
