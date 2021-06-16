@@ -128,7 +128,7 @@ class appsCluster(Application):
     monitoringWindow=None
     isDeterministic=None
     
-    def __init__(self,appNames,srateAvg,monitoringWindow,horizon,cpuQuotas,isDeterministic=True):
+    def __init__(self,appNames,srateAvg,cpuQuotas,isDeterministic=True,monitoringWindow=1,horizon=None):
         self.appNames=appNames
         self.srateAvg=srateAvg
         self.users=None# mi aspetto che il numero di utenti venga passoto come prameetro della funzione __computeRT__
@@ -160,8 +160,12 @@ class appsCluster(Application):
         rtime={}
         
         for h in range(self.monitoringWindow):
-            self.deployCluster(users, self.cpuQuotas, self.srateAvg, self.appNames, self.stdrateAvg)
-            self.cluster["env"].run(until=self.horizon)
+            self.deployCluster(users,self.cpuQuotas, self.srateAvg, self.appNames, self.stdrateAvg)
+            if(self.horizon is not None):
+                self.cluster["env"].run(until=self.horizon)
+            else:
+                self.cluster["env"].run()
+                
             for key,val in enumerate(self.cluster["apps"]):
                 if(not val in rtime):
                     rtime[val]=[]
@@ -191,17 +195,11 @@ if __name__ == "__main__":
     #average service rate per applications
     srateAvg=np.matrix([1,1,1]);
     #numper of users per applications
-    X0=np.matrix([1,1,1])
+    X0=np.matrix([201,201,201])
     #reserved cpus quaota per applications
     cpuQuotas=np.matrix([1,1,1])
-    #numper of observation windows
-    rep=1;
-    #width of each observation windows
-    T=1.1
     
-    cluster=appsCluster(appNames=Names,srateAvg=srateAvg,
-                         monitoringWindow=1,horizon=100,
-                         cpuQuotas=cpuQuotas,isDeterministic=False)
+    cluster=appsCluster(appNames=Names,srateAvg=srateAvg,cpuQuotas=cpuQuotas,isDeterministic=False)
     
     rtime=cluster.__computeRT__(X0)
     
@@ -217,5 +215,5 @@ if __name__ == "__main__":
     
     fig.tight_layout() # Or equivalently,  "plt.tight_layout()"
     #fig.subplots_adjust(hspace=0.5)
-    plt.show()
+    #plt.show()
     
