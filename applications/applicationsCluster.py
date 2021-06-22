@@ -9,6 +9,7 @@ from scipy.stats import truncnorm
 import numpy as np
 import uuid
 import matplotlib.pyplot as plt
+from astropy.units import Tu
 if __name__ == "__main__":
     from application import Application
 else:
@@ -193,14 +194,14 @@ if __name__ == "__main__":
     #average service rate per applications
     srateAvg=np.matrix([1,1,1]);
     #numper of users per applications
-    X0=np.matrix([201,201,201])
+    X0=np.matrix([10,5,10])
     #reserved cpus quaota per applications
     cpuQuotas=np.matrix([1,1,1])
     
     cluster=appsCluster(appNames=Names,srateAvg=srateAvg,cpuQuotas=cpuQuotas,isDeterministic=False)
+    cluster.cpuQuotas=np.matrix([0.5,1,1])
     rtime=cluster.__computeRT__(X0)
-    
-    fig, axs = plt.subplots(len(rtime),1)
+
     for i in range(rtime.shape[0]):
         print("%s mean=%f"%(cluster.appNames[i],rtime[i]))
     
