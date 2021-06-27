@@ -16,7 +16,7 @@ class Runner:
         #print("*********************   %s   ********************\n" % (gen,))
         for ct in self.controllers:
             ct.setSLA(self.sla)
-            m = Monitoring(self.window)
+            m = Monitoring(self.window, self.sla)
             ct.setMonitoring(m)
             ct.setGenerator(gen)
             a = self.app

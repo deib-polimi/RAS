@@ -2,7 +2,7 @@ from .controller import Controller
 from pyscipopt import Model
 import numpy as np
 from estimator import QNEstimaator
-from Crypto.Random.random import sample
+# from Crypto.Random.random import sample
 
 
 class OPTCTRL(Controller):

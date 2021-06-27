@@ -117,23 +117,23 @@ class App():
         
 
 
-class appsCluster(Application):
+class AppsCluster(Application):
     
     appNames=None
     srateAvg=None
     stdrateAvg=None
-    cpuQuotas=None
+    cores=None
     users=None
     cluster=None
     horizon=None
     monitoringWindow=None
     isDeterministic=None
     
-    def __init__(self,appNames,srateAvg,cpuQuotas,isDeterministic=True,monitoringWindow=1,horizon=None):
+    def __init__(self,appNames,srateAvg,initCores,isDeterministic=True,monitoringWindow=1,horizon=None):
         self.appNames=appNames
         self.srateAvg=srateAvg
         self.users=None# mi aspetto che il numero di utenti venga passoto come prameetro della funzione __computeRT__
-        self.cpuQuotas=cpuQuotas
+        self.cores=initCores
         self.stdrateAvg=None
         self.monitoringWindow=monitoringWindow
         self.horizon=horizon
@@ -161,7 +161,7 @@ class appsCluster(Application):
         rtime=np.zeros([len(self.appNames)])
         
         for h in range(self.monitoringWindow):
-            self.deployCluster(users,self.cpuQuotas, self.srateAvg, self.appNames, self.stdrateAvg)
+            self.deployCluster(np.array(users),self.cores, self.srateAvg, self.appNames, self.stdrateAvg)
             if(self.horizon is not None):
                 self.cluster["env"].run(until=self.horizon)
             else:
@@ -196,10 +196,10 @@ if __name__ == "__main__":
     #numper of users per applications
     X0=np.matrix([10,5,10])
     #reserved cpus quaota per applications
-    cpuQuotas=np.matrix([1,1,1])
+    cores=np.matrix([1,1,1])
     
-    cluster=appsCluster(appNames=Names,srateAvg=srateAvg,cpuQuotas=cpuQuotas,isDeterministic=False)
-    cluster.cpuQuotas=np.matrix([0.5,1,1])
+    cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=False)
+    cluster.cores=np.matrix([0.5,1,1])
     rtime=cluster.__computeRT__(X0)
 
     for i in range(rtime.shape[0]):

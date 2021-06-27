@@ -4,7 +4,7 @@ class Generator:
         self.name = type(self).__name__
 
     def tick(self, t):
-        return int(self.f(t))
+        return self.f(t)
 
     def __str__(self):
         return "%s - " % (self.name,)

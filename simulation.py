@@ -1,6 +1,6 @@
 from generators import Generator
 from applications import Application
-from numpy import *
+from numpy import array
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({'font.size': 18})
@@ -17,54 +17,69 @@ class Simulation:
         self.name = "%s-%s" % (controller.name, generator.name)
 
     def run(self):
-        self.total_cores = 0
-        self.violations = 0
         for t in range(0, self.horizon):
             print(t)
             users = self.generator.tick(t)
+            print(users)
             rt = self.app.setRT(users)
             self.monitoring.tick(t, rt, users, self.app.cores)
             cores = self.controller.tick(t)
             self.app.cores = cores
-            if self.monitoring.getRT() > self.app.sla:
-                #self.violations += abs(self.monitoring.getRT()-self.app.sla)
-                self.violations += 1
-
-
+      
     def log(self):
-        rts = array(self.monitoring.allRts)
-        cores = array(self.monitoring.allCores)
-        return "\\textit{%s} & \\textit{%s} & $%.2f$ & $%.2f$ & $%.2f$ & $%.2f$ & $%d$ & $%d$ \\\\ \hline" % (self.controller.name, self.generator.name, rts.mean(), rts.std(), rts.min(), rts.max(), self.violations, cores.mean())
+        arts = array(self.monitoring.getAllRTs())
+        acores = array(self.monitoring.getAllCores())
+        aviolations = self.monitoring.getViolations()
+        if not isinstance(aviolations, list):
+            arts = [arts]
+            acores = [acores]
+            aviolations = [aviolations]
+        output = ""
+        for (rts, cores, violations) in zip(arts, acores, aviolations):
+            output += "\\textit{%s} & \\textit{%s} & $%.2f$ & $%.2f$ & $%.2f$ & $%.2f$ & $%d$ & $%d$ \\\\ \hline \n" % (self.controller.name, self.generator.name, rts.mean(), rts.std(), rts.min(), rts.max(), violations, cores.mean())
+        return output
 
     def plot(self):
-        fig, ax1 = plt.subplots()
-        ax1.set_ylabel('# workload')
-        ax1.set_xlabel("time [s]")
-        ax1.plot(self.monitoring.allUsers, 'r--', linewidth=2)
-        ax2 = ax1.twinx()
-        ax2.plot(self.monitoring.allCores, 'b-', linewidth=2)
-        ax2.set_ylabel('# cores')
-        fig.tight_layout()
-        plt.savefig("experiments/%s-workcore.pdf" % (self.name,))
-        plt.close()
+        i = 0
+        arts = array(self.monitoring.getAllRTs())
+        acores = array(self.monitoring.getAllCores())
+        aviolations = self.monitoring.getViolations()
+        ausers = self.monitoring.getAllUsers()
+        if not isinstance(aviolations, list):
+            arts = [arts]
+            acores = [acores]
+            aviolations = [aviolations]
+            ausers = [ausers]
+        for (rts, cores, users) in zip(arts, acores, ausers):
+            fig, ax1 = plt.subplots()
+            ax1.set_ylabel('# workload')
+            ax1.set_xlabel("time [s]")
+            ax1.plot(users, 'r--', linewidth=2)
+            ax2 = ax1.twinx()
+            ax2.plot(cores, 'b-', linewidth=2)
+            ax2.set_ylabel('# cores')
+            fig.tight_layout()
+            plt.savefig("experiments/%s-%d-workcore.pdf" % (self.name, i))
+            plt.close()
 
-        fig, ax1 = plt.subplots()
-        ax1.set_ylabel('RT [s]')
-        ax1.set_xlabel("time [s]")
-        ax1.plot(self.monitoring.allRts, 'g-', linewidth=2)
-        ax2 = ax1.twinx()
-        ax2.plot([self.app.sla] * len(self.monitoring.allRts),
-                 'r--', linewidth=2)
-        ax2.set_ylabel('RT [s]')
-        m1, M1 = ax1.get_ylim()
-        m2, M2 = ax2.get_ylim()
-        m = min([m1, m2])
-        M = max([M1, M2])
-        ax1.set_ylim([m, M])
-        ax2.set_ylim([m, M])
-        fig.tight_layout()
-        plt.savefig("experiments/%s-rt.pdf" % (self.name,))
-        plt.close()
+            fig, ax1 = plt.subplots()
+            ax1.set_ylabel('RT [s]')
+            ax1.set_xlabel("time [s]")
+            ax1.plot(rts, 'g-', linewidth=2)
+            ax2 = ax1.twinx()
+            ax2.plot([self.app.sla] * len(rts),
+                    'r--', linewidth=2)
+            ax2.set_ylabel('RT [s]')
+            m1, M1 = ax1.get_ylim()
+            m2, M2 = ax2.get_ylim()
+            m = min([m1, m2])
+            M = max([M1, M2])
+            ax1.set_ylim([m, M])
+            ax2.set_ylim([m, M])
+            fig.tight_layout()
+            plt.savefig("experiments/%s-%d-rt.pdf" % (self.name, i))
+            plt.close()
+            i += 1
 
         '''
         fig, ax1 = plt.subplots()
