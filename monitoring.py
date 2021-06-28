@@ -45,7 +45,7 @@ class MultiMonitoring(Monitoring):
     
     def tick(self, t, rt, users, cores):
         for i in range(len(self.monitorings)):
-            self.monitorings[i].tick(t, rt[i], users[i], cores[0,i])
+            self.monitorings[i].tick(t, rt[i], users[i], cores[i])
 
     def getUsers(self):
         return [m.getUsers() for m in self.monitorings]

@@ -19,14 +19,16 @@ generators = [RampGen(10, 800)] * appsCount
 monitorings = [Monitoring(monitoringWindow, appSLA)] * appsCount
 
 Names=["App1","App2","App3"]
-srateAvg=np.matrix([1,1,1])
-initCores=np.matrix([1,1,1])
+srateAvg=np.array([1,1,1])
+initCores=np.array([1,1,1])
 app=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=initCores,isDeterministic=False)
 
 g = MultiGenerator(generators)
 m = MultiMonitoring(monitorings)
 c = CTControllerScaleXNode(1, initCores, maxCores)
-
+c.setSLA([appSLA] * 3)
+c.setMonitoring(m)
+c.setGenerator(g)
 simulation = Simulation(horizon, app, g, m, c)
 simulation.run()
 simulation.log()
