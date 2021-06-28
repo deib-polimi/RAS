@@ -151,7 +151,7 @@ class AppsCluster(Application):
             initPop=[]
             for k in range(X0[i]):
                 initPop.append(User(uuid.uuid4()))       
-            cluster["apps"][Names[i]]=App(cluster["env"],S[0,i],Names[i],initPop,MU[0,i],isDeterministic=self.isDeterministic)
+            cluster["apps"][Names[i]]=App(cluster["env"],S[i],Names[i],initPop,MU[i],isDeterministic=self.isDeterministic)
             
         self.cluster=cluster
     
@@ -192,14 +192,14 @@ if __name__ == "__main__":
     #applications names
     Names=["App1","App2","App3"];
     #average service rate per applications
-    srateAvg=np.matrix([1,1,1]);
+    srateAvg=[1,1,1];
     #numper of users per applications
     X0=[10,5,10]
     #reserved cpus quaota per applications
-    cores=np.matrix([1,1,1])
+    cores=[1,1,1]
     
     cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=False)
-    cluster.cores=np.matrix([0.5,1,1])
+    cluster.cores=[0.5,1,1]
     rtime=cluster.__computeRT__(X0)
 
     for i in range(rtime.shape[0]):
