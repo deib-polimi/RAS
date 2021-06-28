@@ -194,12 +194,11 @@ if __name__ == "__main__":
     #average service rate per applications
     srateAvg=[1,1,1];
     #numper of users per applications
-    X0=[10,5,10]
+    X0=[3,3,1]
     #reserved cpus quaota per applications
     cores=[1,1,1]
     
-    cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=False)
-    cluster.cores=[0.5,1,1]
+    cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=True)
     rtime=cluster.__computeRT__(X0)
 
     for i in range(rtime.shape[0]):
