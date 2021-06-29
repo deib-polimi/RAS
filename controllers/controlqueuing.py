@@ -17,9 +17,9 @@ class OPTCTRL(Controller):
         self.stime=stime
         self.generator=None
         self.estimator=QNEstimaator()
-        self.rtSamples=[]
-        self.cSamples=[]
-        self.userSamples=[]
+        self.rtSamples=[[]]
+        self.cSamples=[[]]
+        self.userSamples=[[]]
     
     
     def OPTController(self,e, tgt, C):
@@ -45,9 +45,9 @@ class OPTCTRL(Controller):
     
     def addRtSample(self,rt,u,c):
         if(len(self.rtSamples)>=self.esrimationWindow):
-            self.rtSamples=np.roll(self.rtSamples,-1)
-            self.cSamples=np.roll(self.cSamples,-1)
-            self.userSamples=np.roll(self.userSamples,-1)
+            self.rtSamples=np.roll(self.rtSamples,[-1,-1])
+            self.cSamples=np.roll(self.cSamples,[-1,-1])
+            self.userSamples=np.roll(self.userSamples,[-1,-1])
             
             self.rtSamples[-1]=rt
             self.cSamples[-1]=c
@@ -61,30 +61,31 @@ class OPTCTRL(Controller):
         rt = self.monitoring.getRT()
         users=self.monitoring.getUsers()
         
-        if(np.isnan(rt)):
-            print(rt,users,self.monitoring.allCores[-1])
-            raise ValueError("error in response time calculation")
-        
         self.addRtSample(rt,users,self.cores)
         
-        oldEstimation=np.zeros([1,len(self.rtSamples)])
-        for i in range(0,len(self.rtSamples)):
-            oldEstimation[0,i]=self.estimator.estimate(self.rtSamples[i], self.cSamples[i], self.userSamples[i])
+        mRt=np.array(self.rtSamples).mean(axis=0)
+        mCores=np.array(self.cSamples).mean(axis=0)
+        mUsers=np.array(self.userSamples).mean(axis=0)
         
-        #update stime
-        self.stime=np.mean(oldEstimation)
-        
+        for app in range(len(rt)):
+            self.stime[app]=self.estimator.estimate(mRt[app], mCores[app],mUsers[app])
+           
         if(self.generator!=None):
             users=self.generator.f(t+1)    
         else:
             users=int(self.monitoring.getUsers())
-            
-        self.cores=np.ceil(self.OPTController(self.stime, self.setpoint, users))
+        
+        for app in range(len(rt)):
+            self.cores[app]=self.OPTController(self.stime[app], self.setpoint[app], users[app])
     
     def resetEstimate(self):
         self.rtSamples=[]
         self.cSamples=[]
         self.userSamples=[]
+    
+    def setSLA(self, sla):
+        self.sla = sla
+        self.setpoint = [s*self.st for s in self.sla]
       
 
     def __str__(self):

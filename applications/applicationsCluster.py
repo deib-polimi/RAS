@@ -10,6 +10,7 @@ import numpy as np
 import uuid
 import matplotlib.pyplot as plt
 from astropy.units import Tu
+from _curses import A_VERTICAL
 if __name__ == "__main__":
     from application import Application
 else:
@@ -36,6 +37,8 @@ class App():
     # stdST: std service rate
     # isDetermistic: service rate constant (mST) or not
     def __init__(self,env,cpuQuota,name,initUsers,mSt,nThreads=-1,stdSt=None,isDeterministic=False):
+        self.sla=1.0
+        self.disturbance=0
         self.env=env
         self.name=name
         self.isDeterministic=isDeterministic
@@ -130,6 +133,7 @@ class AppsCluster(Application):
     isDeterministic=None
     
     def __init__(self,appNames,srateAvg,initCores,isDeterministic=True,monitoringWindow=1,horizon=None):
+        self.disturbance=0
         self.appNames=appNames
         self.srateAvg=srateAvg
         self.users=None# mi aspetto che il numero di utenti venga passoto come prameetro della funzione __computeRT__
@@ -169,7 +173,6 @@ class AppsCluster(Application):
                 
             for key,val in enumerate(self.cluster["apps"]):
                 rtime[key]=np.mean(self.cluster["apps"][val].rTime)
-        
         return rtime
         
         
@@ -190,13 +193,13 @@ class User(object):
     
 if __name__ == "__main__":
     #applications names
-    Names=["App1","App2","App3"];
+    Names=["App1"];
     #average service rate per applications
-    srateAvg=[1,1,1];
+    srateAvg=[1];
     #numper of users per applications
-    X0=[3,3,1]
+    X0=[1000]
     #reserved cpus quaota per applications
-    cores=[1,1,1]
+    cores=[1]
     
     cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=True)
     rtime=cluster.__computeRT__(X0)

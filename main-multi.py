@@ -7,28 +7,41 @@ from math import ceil
 from monitoring import Monitoring, MultiMonitoring
 import numpy as np
 
-stime=0.2 # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
-appSLA = stime*3
-horizon = 1000
+stimes=[0.1,0.4] # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
+appsSLA = [st*1.5 for st in stimes]
+horizon = 200
 monitoringWindow = 1
 ctPeriod = 1
-appsCount = 3 
-maxCores = 100
+appsCount = 2 
+maxCores = 10000
+
 
 generators = [RampGen(10, 800)] * appsCount
-monitorings = [Monitoring(monitoringWindow, appSLA)] * appsCount
+monitorings = [Monitoring(monitoringWindow, appsSLA[i]) for i in range(appsCount)] 
 
-Names=["App1","App2","App3"]
-srateAvg=[1,1,1]
-initCores=[1,1,1]
+Names=["App1","App2"]
+srateAvg=[1.0/stime for stime in stimes]
+initCores=[1,1]
 app=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=initCores,isDeterministic=False)
+AppsCluster.sla=appsSLA
 
 g = MultiGenerator(generators)
 m = MultiMonitoring(monitorings)
-c = CTControllerScaleXNode(1, initCores, maxCores)
-c.setSLA([appSLA] * 3)
-c.setMonitoring(m)
-c.setGenerator(g)
-simulation = Simulation(horizon, app, g, m, c)
+
+# c = CTControllerScaleXNode(1, initCores, maxCores)
+# c.setSLA(appsSLA)
+# c.setMonitoring(m)
+# c.setGenerator(g)
+
+c2 = OPTCTRL(monitoringWindow, init_cores=initCores, st=1, stime=[1/stimes[i] for i in range(appsCount)])
+c2.setName("OPTCTRL")
+
+c2.resetEstimate()
+c2.setSLA(appsSLA)
+c2.setGenerator(g)
+c2.setMonitoring(m)
+
+simulation = Simulation(horizon, app, g, m, c2)
 simulation.run()
-simulation.log()
+print(simulation.log())
+simulation.plot()

@@ -18,9 +18,9 @@ class Simulation:
 
     def run(self):
         for t in range(0, self.horizon):
-            print(t)
+            #print(t)
             users = self.generator.tick(t)
-            print(users)
+            #print(users)
             rt = self.app.setRT(users)
             self.monitoring.tick(t, rt, users, self.app.cores)
             cores = self.controller.tick(t)
@@ -67,7 +67,7 @@ class Simulation:
             ax1.set_xlabel("time [s]")
             ax1.plot(rts, 'g-', linewidth=2)
             ax2 = ax1.twinx()
-            ax2.plot([self.app.sla] * len(rts),
+            ax2.plot([self.app.sla[i]] * len(rts),
                     'r--', linewidth=2)
             ax2.set_ylabel('RT [s]')
             m1, M1 = ax1.get_ylim()
