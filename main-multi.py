@@ -8,12 +8,12 @@ from monitoring import Monitoring, MultiMonitoring
 import numpy as np
 
 stimes=[0.1,0.4] # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
-appsSLA = [st*1.5 for st in stimes]
+appsSLA = [stimes[0],stimes[1]*2]
 horizon = 200
 monitoringWindow = 1
 ctPeriod = 1
 appsCount = 2 
-maxCores = 10000
+maxCores = 2000
 
 
 generators = [RampGen(10, 800)] * appsCount
@@ -33,7 +33,7 @@ m = MultiMonitoring(monitorings)
 # c.setMonitoring(m)
 # c.setGenerator(g)
 
-c2 = OPTCTRL(monitoringWindow, init_cores=initCores, st=1, stime=[1/stimes[i] for i in range(appsCount)])
+c2 = OPTCTRL(monitoringWindow, init_cores=initCores, st=1, stime=[1/stimes[i] for i in range(appsCount)],maxCores=maxCores)
 c2.setName("OPTCTRL")
 
 c2.resetEstimate()
