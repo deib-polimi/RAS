@@ -23,7 +23,6 @@ class CTControllerScaleXNode(Controller):
             e = 1/self.setpoint[i] - 1/rt
             xc = float(self.xc_precs[i] + self.BC * e)
             oldcores = self.cores[i]
-            print(oldcores)
             self.cores[i] = min(max(max(MIN_CORES, oldcores/MAX_SCALE_OUT_TIMES), xc + self.DC * e), oldcores*MAX_SCALE_OUT_TIMES)
             if t < 10:
                 self.cores[i] = self.init_cores[i]
