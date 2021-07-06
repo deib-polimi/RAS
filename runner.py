@@ -4,19 +4,23 @@ from generators import Generator
 from applications import Application
 
 class Runner:
-    def __init__(self, hrz: int, cts: list, window: int, app: Application):
+    def __init__(self, hrz: int, cts: list, window: int, app: Application, genMonitoring = None):
         self.app = app
         self.sla = self.app.sla
         self.horizon = hrz
         self.controllers = cts
         self.window = window
         self.simulations = []
+        self.genMonitoring = genMonitoring
 
     def run(self, gen: Generator):
         #print("*********************   %s   ********************\n" % (gen,))
         for ct in self.controllers:
             ct.setSLA(self.sla)
-            m = Monitoring(self.window, self.sla)
+            if self.genMonitoring:
+                m = self.genMonitoring(self.window, self.sla)
+            else:
+                m = Monitoring(self.window, self.sla)
             ct.setMonitoring(m)
             ct.setGenerator(gen)
             a = self.app

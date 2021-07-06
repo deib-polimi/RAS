@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 plt.rcParams.update({'font.size': 18})
 
-
 class Simulation:
     def __init__(self, horizon, app, generator, monitoring, controller):
         self.app = app
@@ -66,7 +65,7 @@ class Simulation:
             ax1.set_xlabel("time [s]")
             ax1.plot(rts, 'g-', linewidth=2)
             ax2 = ax1.twinx()
-            ax2.plot([self.app.sla] * len(rts),
+            ax2.plot([self.app.sla[i]] * len(rts),
                     'r--', linewidth=2)
             ax2.set_ylabel('RT [s]')
             m1, M1 = ax1.get_ylim()

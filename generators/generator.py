@@ -1,6 +1,5 @@
 class Generator:
     def __init__(self):
-        self.f = lambda x: x
         self.name = type(self).__name__
 
     def tick(self, t):
@@ -11,3 +10,5 @@ class Generator:
 
     def setName(self, name):
         self.name = name
+
+    def f(self, x): return x

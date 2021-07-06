@@ -3,6 +3,7 @@ from .generator import Generator
 
 class RampGen(Generator):
     def __init__(self, slope, steady, initial=1):
+        super().__init__()
         self.slope = slope
         self.steady = steady
         self.initial = initial

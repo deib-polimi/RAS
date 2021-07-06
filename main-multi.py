@@ -6,29 +6,64 @@ from applications import AppsCluster
 from math import ceil
 from monitoring import Monitoring, MultiMonitoring
 import numpy as np
+from commons import SN1, SN2, SP1, SP2, RP1, RP2, ALL
+from itertools import combinations
 
-stime=0.2 # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
-appSLA = stime*3
+stimes=[0.1, 0.4] # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
+appsCount = len(stimes)
+appsSLA = [x*2 for x in stimes]
 horizon = 1000
 monitoringWindow = 1
 ctPeriod = 1
-appsCount = 3 
-maxCores = 100
+maxCores = 200000
 
-generators = [RampGen(10, 800)] * appsCount
-monitorings = [Monitoring(monitoringWindow, appSLA)] * appsCount
-
-Names=["App1","App2","App3"]
-srateAvg=[1,1,1]
-initCores=[1,1,1]
+Names=[f'App{i}' for i in range(1, appsCount+1)]
+srateAvg=[1.0/stime for stime in stimes]
+initCores=[10 for _ in stimes]
 app=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=initCores,isDeterministic=False)
+AppsCluster.sla=appsSLA
 
-g = MultiGenerator(generators)
-m = MultiMonitoring(monitorings)
-c = CTControllerScaleXNode(1, initCores, maxCores)
-c.setSLA([appSLA] * 3)
-c.setMonitoring(m)
-c.setGenerator(g)
-simulation = Simulation(horizon, app, g, m, c)
-simulation.run()
-simulation.log()
+
+c1 = CTControllerScaleXNode(1, initCores, maxCores, BC=3, DC=15)
+c2 = OPTCTRL(monitoringWindow, init_cores=initCores, st=1, stime=[1/stimes[i] for i in range(appsCount)],maxCores=maxCores)
+c2.setName("OPTCTRL")
+c2.reset()
+
+
+
+runner = Runner(horizon, [c2, c1], monitoringWindow, app, lambda window, sla: MultiMonitoring([Monitoring(monitoringWindow, appsSLA[i]) for i in range(appsCount)]))
+g = MultiGenerator([RP1, RP1])
+runner.run(g)
+
+g = MultiGenerator([RP2, RP2])
+runner.run(g)
+
+g = MultiGenerator([SN1, SN1])
+runner.run(g)
+
+g = MultiGenerator([SP1, SP1])
+runner.run(g)
+
+
+""" TOBERUN
+g = MultiGenerator([SP1, RP1])
+runner.run(g)
+
+g = MultiGenerator([RP1, SP1])
+runner.run(g)
+
+g = MultiGenerator([SN1, SP1])
+runner.run(g)
+
+g = MultiGenerator([SP1, SN1])
+runner.run(g)
+
+g = MultiGenerator([SN1, RP1])
+runner.run(g)
+
+g = MultiGenerator([RP1, SN1])
+runner.run(g)
+"""
+
+runner.log()
+runner.plot()

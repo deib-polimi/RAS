@@ -3,6 +3,7 @@ from .generator import Generator
 
 class StepGen(Generator):
     def __init__(self, intervals, values):
+        super().__init__()
         assert len(intervals) == len(values)
         self.intervals = intervals
         self.values = values

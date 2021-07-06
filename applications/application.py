@@ -13,8 +13,7 @@ class Application:
 
     def setRT(self, req):
         exactRT = self.__computeRT__(req)
-        #self.RT = exactRT * (1.0+random.random()*self.disturbance)
-        self.RT = exactRT * (1+np.random.normal(loc=0,scale=2*exactRT))
+        self.RT = exactRT * (1.0+random.random()*self.disturbance)
         return self.RT
 
     def __computeRT__(self, req):

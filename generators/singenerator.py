@@ -4,6 +4,7 @@ from .generator import Generator
 
 class SinGen(Generator):
     def __init__(self, mod, shift, period=100):
+        super().__init__()
         self.mod = mod
         self.shift = shift
         self.period = period / (2*math.pi)
