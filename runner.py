@@ -2,9 +2,11 @@ from monitoring import Monitoring
 from simulation import Simulation
 from generators import Generator
 from applications import Application
+import time
+import uuid
 
 class Runner:
-    def __init__(self, hrz: int, cts: list, window: int, app: Application, genMonitoring = None):
+    def __init__(self, hrz: int, cts: list, window: int, app: Application, genMonitoring = None, name="run"):
         self.app = app
         self.sla = self.app.sla
         self.horizon = hrz
@@ -12,6 +14,7 @@ class Runner:
         self.window = window
         self.simulations = []
         self.genMonitoring = genMonitoring
+        self.name = name
 
     def run(self, gen: Generator):
         #print("*********************   %s   ********************\n" % (gen,))
@@ -33,8 +36,15 @@ class Runner:
             # print()
 
     def log(self):
+        ts = time.time()
+        id = uuid.uuid1()
+        f = open(f'sim-{self.name}-{ts}-{str(id)}.log', "w")
         for s in self.simulations:
-            print(s.log())
+            res = s.log()
+            print(res)
+            f.write(res)
+        f.close()
+
 
     def plot(self):
         for s in self.simulations:

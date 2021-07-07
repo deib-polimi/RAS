@@ -8,11 +8,14 @@ from monitoring import Monitoring, MultiMonitoring
 import numpy as np
 from commons import SN1, SN2, SP1, SP2, RP1, RP2, ALL
 from itertools import combinations
+import sys
 
-stimes=[0.1, 0.4] # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
+name = sys.argv[0].split('.')[0]
+
+stimes=[0.1, 0.4, 0.6, 0.25] # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
 appsCount = len(stimes)
 appsSLA = [x*2 for x in stimes]
-horizon = 200
+horizon = 1000
 monitoringWindow = 1
 ctPeriod = 1
 maxCores = 200000
@@ -31,39 +34,15 @@ c2.reset()
 
 
 
-runner = Runner(horizon, [c2, c1], monitoringWindow, app, lambda window, sla: MultiMonitoring([Monitoring(monitoringWindow, appsSLA[i]) for i in range(appsCount)]))
-g = MultiGenerator([RP1, RP1])
+runner = Runner(horizon, [c2, c1], monitoringWindow, app, lambda window, sla: MultiMonitoring([Monitoring(monitoringWindow, appsSLA[i]) for i in range(appsCount)]), name=name)
+g = MultiGenerator([SP1, RP1, SN1, SP2])
 runner.run(g)
 
-g = MultiGenerator([RP2, RP2])
+g = MultiGenerator([RP2, SN2, SP2, RP1])
 runner.run(g)
 
-g = MultiGenerator([SN1, SN1])
+g = MultiGenerator([SN1, SN2, RP1, RP2])
 runner.run(g)
-
-g = MultiGenerator([SP1, SP1])
-runner.run(g)
-
-
-""" TOBERUN
-g = MultiGenerator([SP1, RP1])
-runner.run(g)
-
-g = MultiGenerator([RP1, SP1])
-runner.run(g)
-
-g = MultiGenerator([SN1, SP1])
-runner.run(g)
-
-g = MultiGenerator([SP1, SN1])
-runner.run(g)
-
-g = MultiGenerator([SN1, RP1])
-runner.run(g)
-
-g = MultiGenerator([RP1, SN1])
-runner.run(g)
-"""
 
 runner.log()
 runner.plot()
