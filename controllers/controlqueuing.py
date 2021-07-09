@@ -57,6 +57,7 @@ class OPTCTRL(Controller):
     #     return [sol[S[i]] for i in range(nApp)]
     
     def OPTController(self,e, tgt, C,maxCore):
+        print(e,tgt,C)
         self.model = casadi.Opti("conic") 
         nApp=len(tgt)
         
@@ -92,7 +93,7 @@ class OPTCTRL(Controller):
     
     
         self.model.minimize(obj)    
-        optionsIPOPT={'print_time':False,'ipopt':{'print_level':0,'max_iter':5000}}
+        #optionsIPOPT={'print_time':False,'ipopt':{'print_level':0},'osqp':{'print_level':0}}
         self.model.solver('osqp') 
         
         sol=self.model.solve()

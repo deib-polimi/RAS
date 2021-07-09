@@ -3,7 +3,7 @@ from generators import *
 SN1 = SinGen(500, 700, 200)
 SN1.setName("SN1")
 
-SN2 = SinGen(1000, 1000, 100)
+SN2 = SinGen(1000, 1000, 1001)
 SN2.setName("SN2")
 
 SP1 = StepGen(range(0, 1000, 100), range(0, 10000, 1000))
