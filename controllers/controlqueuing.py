@@ -94,7 +94,7 @@ class OPTCTRL(Controller):
     
         self.model.minimize(obj)    
         #optionsIPOPT={'print_time':False,'ipopt':{'print_level':0},'osqp':{'print_level':0}}
-        self.model.solver('osqp',{'print_time':False,'osqp':{'error_on_fail':False}}) 
+        self.model.solver('osqp',{'print_time':False,'error_on_fail':False}) 
         
         sol=self.model.solve()
         return sol.value(S).tolist()
