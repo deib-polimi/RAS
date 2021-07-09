@@ -1,7 +1,5 @@
 numpy
 matplotlib
-pyscipopt
 simpy
 scipy
-astropy
-pycryptodome
+casadi
