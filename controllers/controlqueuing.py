@@ -1,5 +1,5 @@
 from .controller import Controller
-from pyscipopt import Model
+import casadi
 import numpy as np
 from estimator import QNEstimaator
 
@@ -22,39 +22,85 @@ class OPTCTRL(Controller):
         self.maxCores=maxCores
     
     
+    # def OPTController(self,e, tgt, C,maxCore):
+    #     optCTRL = Model() 
+    #     optCTRL.hideOutput()
+    #
+    #     nApp=len(tgt)
+    #
+    #     T=[optCTRL.addVar("t%d"%(i), vtype="C", lb=0, ub=None) for i in range(nApp)]
+    #     S=[optCTRL.addVar("s%d"%(i), vtype="C", lb=10**-3, ub=maxCore) for i in range(nApp)]
+    #     D=[optCTRL.addVar("d%d"%(i), vtype="B") for i in range(nApp)]
+    #     E_l1 = [optCTRL.addVar(vtype="C", lb=0, ub=None) for i in range(nApp)]
+    #
+    #     sSum=0
+    #     obj=0;
+    #     for i in range(nApp):
+    #         sSum+=S[i]
+    #         obj+=E_l1[i]/tgt[i]
+    #
+    #     optCTRL.addCons(sSum<=maxCore)
+    #
+    #     for i in range(nApp):
+    #         optCTRL.addCons(T[i] <= S[i] / e[i])
+    #         optCTRL.addCons(T[i] <= C[i] / e[i])
+    #         optCTRL.addCons(T[i] >= S[i] / e[i] - C[i] / e[i] * D[i])
+    #         optCTRL.addCons(T[i] >= C[i] / e[i] - C[i] / e[i] * (1 - D[i]))
+    #         optCTRL.addCons(E_l1[i] >= ((C[i]/T[i])-tgt[i]))
+    #         optCTRL.addCons(E_l1[i] >= -((C[i]/T[i])-tgt[i]))
+    #
+    #
+    #     optCTRL.setObjective(obj)
+    #
+    #     optCTRL.optimize()
+    #     sol = optCTRL.getBestSol()
+    #     return [sol[S[i]] for i in range(nApp)]
+    
     def OPTController(self,e, tgt, C,maxCore):
-        optCTRL = Model() 
-        optCTRL.hideOutput()
-        
+        self.model = casadi.Opti("conic") 
         nApp=len(tgt)
         
-        T=[optCTRL.addVar("t%d"%(i), vtype="C", lb=0, ub=None) for i in range(nApp)]
-        S=[optCTRL.addVar("s%d"%(i), vtype="C", lb=10**-3, ub=maxCore) for i in range(nApp)]
-        D=[optCTRL.addVar("d%d"%(i), vtype="B") for i in range(nApp)]
-        E_l1 = [optCTRL.addVar(vtype="C", lb=0, ub=None) for i in range(nApp)]
+        T=self.model.variable(1,nApp);
+        S=self.model.variable(1,nApp);
+        E_l1=self.model.variable(1,nApp);
         
+        self.model.subject_to(T>=0)
+        self.model.subject_to(self.model.bounded(0,S,maxCore))
+        self.model.subject_to(E_l1>=0)
+    
         sSum=0
         obj=0;
         for i in range(nApp):
-            sSum+=S[i]
-            obj+=E_l1[i]/tgt[i]
-            
-        optCTRL.addCons(sSum<=maxCore)
+            sSum+=S[0,i]
+            #obj+=E_l1[0,i]
+            obj+=(T[0,i]/C[i]-1/tgt[i])**2
         
+        self.model.subject_to(sSum<=maxCore)
+    
         for i in range(nApp):
-            optCTRL.addCons(T[i] <= S[i] / e[i])
-            optCTRL.addCons(T[i] <= C[i] / e[i])
-            optCTRL.addCons(T[i] >= S[i] / e[i] - C[i] / e[i] * D[i])
-            optCTRL.addCons(T[i] >= C[i] / e[i] - C[i] / e[i] * (1 - D[i]))
-            optCTRL.addCons(E_l1[i] >= ((C[i]/T[i])-tgt[i]))
-            optCTRL.addCons(E_l1[i] >= -((C[i]/T[i])-tgt[i]))
+            # optCTRL.addCons(T[i] <= S[i] / e[i])
+            # optCTRL.addCons(T[i] <= C[i] / e[i])
+            # optCTRL.addCons(T[i] >= S[i] / e[i] - C[i] / e[i] * D[i])
+            # optCTRL.addCons(T[i] >= C[i] / e[i] - C[i] / e[i] * (1 - D[i]))
+            # optCTRL.addCons(E_l1[i] >= ((C[i]/T[i])-tgt[i]))
+            # optCTRL.addCons(E_l1[i] >= -((C[i]/T[i])-tgt[i]))
+            self.model.subject_to(T[0,i]==casadi.fmin(S[0,i] / e[i],C[i] / e[i]))
+            
+            
+        # self.model.subject_to((E_l1[0,i]+tgt[i])>=((C[i]/T[0,i])))
+        # self.model.subject_to((E_l1[0,i]-tgt[i])>=-((C[i]/T[0,i])))
+    
+    
+        self.model.minimize(obj)    
+        optionsIPOPT={'print_time':False,'ipopt':{'print_level':0,'max_iter':5000}}
+        self.model.solver('osqp') 
         
+        sol=self.model.solve()
+        return sol.value(S).tolist()
         
-        optCTRL.setObjective(obj)
-        
-        optCTRL.optimize()
-        sol = optCTRL.getBestSol()
-        return [sol[S[i]] for i in range(nApp)]
+        # optCTRL.optimize()
+        # sol = optCTRL.getBestSol()
+        # return [sol[S[i]] for i in range(nApp)]
     
     def addRtSample(self,rt,u,c):
         if(len(self.rtSamples)>=self.esrimationWindow):

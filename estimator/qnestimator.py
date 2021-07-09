@@ -3,30 +3,31 @@ Created on 31 mar 2021
 
 @author: emilio
 '''
-
-from pyscipopt import Model
-import numpy as np
-
-
+import casadi
 class QNEstimaator():
     
     model=None
     
     def estimate(self,rt,s,c):
-        self.model = Model()  
-        self.model.hideOutput()
-        e = self.model.addVar("e", vtype="C", lb=0, ub=None)
-        er_l1 = self.model.addVar("er_l1", vtype="C", lb=0, ub=None)
+        self.model = casadi.Opti()
+        
+        e = self.model.variable(1,1);
+        er_l1 = self.model.variable(1,1);
+        
+        self.model.subject_to(e>=0)
+        self.model.subject_to(er_l1>=0)
         
         if(c<s):
-            self.model.addCons(er_l1 >= rt-e)
-            self.model.addCons(er_l1 >= -rt+e)
+            self.model.subject_to(er_l1 >= rt-e)
+            self.model.subject_to(er_l1 >= -rt+e)
         else:
-            self.model.addCons(er_l1 >= rt-(c/s)*e)
-            self.model.addCons(er_l1 >= -rt+(c/s)*e)
+            self.model.subject_to(er_l1 >= rt-(c/s)*e)
+            self.model.subject_to(er_l1 >= -rt+(c/s)*e)
         
-        self.model.setObjective(er_l1)
-        self.model.optimize()
-        sol = self.model.getBestSol()
-        return sol[e]
+        self.model.minimize(er_l1)    
+        optionsIPOPT={'print_time':False,'ipopt':{'print_level':0}}
+        self.model.solver('ipopt',optionsIPOPT) 
+        
+        sol=self.model.solve()
+        return sol.value(e)
 
