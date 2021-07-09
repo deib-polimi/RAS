@@ -94,7 +94,7 @@ class OPTCTRL(Controller):
     
         self.model.minimize(obj+0.0001*(S[0,0]+S[0,1]))    
         #optionsIPOPT={'print_time':False,'ipopt':{'print_level':0},'osqp':{'print_level':0}}
-        self.model.solver('osqp') 
+        self.model.solver('osqp',{'print_time':False,'osqp':{'max_iter':10000}}) 
         
         sol=self.model.solve()
         return sol.value(S).tolist()
