@@ -92,7 +92,7 @@ class OPTCTRL(Controller):
         # self.model.subject_to((E_l1[0,i]-tgt[i])>=-((C[i]/T[0,i])))
     
     
-        self.model.minimize(obj+0.0001*(S[0,0]+S[0,1]))    
+        self.model.minimize(obj)    
         #optionsIPOPT={'print_time':False,'ipopt':{'print_level':0},'osqp':{'print_level':0}}
         self.model.solver('osqp',{'print_time':False,'osqp':{'max_iter':10000}}) 
         
