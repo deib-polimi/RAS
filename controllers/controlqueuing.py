@@ -106,9 +106,9 @@ class OPTCTRL(Controller):
     
     def addRtSample(self,rt,u,c):
         if(len(self.rtSamples)>=self.esrimationWindow):
-            self.rtSamples=np.roll(self.rtSamples,[-1,-1])
-            self.cSamples=np.roll(self.cSamples,[-1,-1])
-            self.userSamples=np.roll(self.userSamples,[-1,-1])
+            self.rtSamples=np.roll(self.rtSamples,[-1,0],0)
+            self.cSamples=np.roll(self.cSamples,[-1,0],0)
+            self.userSamples=np.roll(self.userSamples,[-1,0],0)
             
             self.rtSamples[-1]=rt
             self.cSamples[-1]=c
