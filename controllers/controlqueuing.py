@@ -58,7 +58,7 @@ class OPTCTRL(Controller):
     
     def OPTController(self,e, tgt, C,maxCore):
         print(e,tgt,C)
-        self.model = casadi.Opti("conic") 
+        self.model = casadi.Opti() 
         nApp=len(tgt)
         
         T=self.model.variable(1,nApp);
@@ -93,8 +93,9 @@ class OPTCTRL(Controller):
     
     
         self.model.minimize(obj)    
-        #optionsIPOPT={'print_time':False,'ipopt':{'print_level':0},'osqp':{'print_level':0}}
-        self.model.solver('osqp',{'print_time':False,'error_on_fail':False}) 
+        optionsIPOPT={'print_time':False,'ipopt':{'print_level':0}}
+        #self.model.solver('osqp',{'print_time':False,'error_on_fail':False})
+        self.model.solver('ipopt',optionsIPOPT) 
         
         sol=self.model.solve()
         return sol.value(S).tolist()
