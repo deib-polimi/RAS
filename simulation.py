@@ -48,7 +48,7 @@ class Simulation:
             acores = [acores]
             aviolations = [aviolations]
             ausers = [ausers]
-        for (rts, cores, users, app) in zip(arts, acores, ausers, self.app):
+        for (rts, cores, users, sla) in zip(arts, acores, ausers, self.app.sla):
             fig, ax1 = plt.subplots()
             ax1.set_ylabel('# workload')
             ax1.set_xlabel("time [s]")
@@ -72,7 +72,7 @@ class Simulation:
             m2, M2 = ax2.get_ylim()
             m = min([m1, m2])
             M = max([M1, M2])
-            M = 2 * app.sla
+            M = 2 * sla
             ax1.set_ylim([m, M])
             ax2.set_ylim([m, M])
             fig.tight_layout()
