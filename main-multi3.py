@@ -6,7 +6,7 @@ from applications import AppsCluster
 from math import ceil
 from monitoring import Monitoring, MultiMonitoring
 import numpy as np
-from commons import SN1, SN2, SP1, SP2, RP1, RP2, ALL
+from commons import SN1, SN2, SP1, SP2, SP3, RP1, RP2, ALL
 from itertools import combinations
 import sys
 
@@ -15,7 +15,7 @@ name = sys.argv[0].split('.')[0]
 stimes=[0.1, 0.4] # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
 appsCount = len(stimes)
 appsSLA = [x*2 for x in stimes]
-horizon = 200
+horizon = 100
 monitoringWindow = 1
 ctPeriod = 1
 maxCores = 200000
@@ -41,7 +41,7 @@ g = MultiGenerator([SN2, SN2])
 g = MultiGenerator([RP2, RP2])
 #runner.run(g)
 
-g = MultiGenerator([SP2, SP2])
+g = MultiGenerator([SP3, SP3])
 runner.run(g)
 
 runner.log()

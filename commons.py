@@ -13,6 +13,8 @@ SP1.setName("SP1")
 SP2 = StepGen([50, 800, 1000], [50, 30000, 50])
 SP2.setName("SP2")
 
+SP3 = StepGen([10, 80, 100], [10, 1000, 10])
+SP3.setName("SP3")
 
 RP1 = RampGen(10, 800)
 RP1.setName("RP1")
@@ -21,4 +23,4 @@ RP2 = RampGen(20, 800)
 RP2.setName("RP2")
 
 
-ALL = [SN1, SN2, SP1, SP2, RP1, RP2]
+ALL = [SN1, SN2, SP1, SP2, SP3, RP1, RP2]

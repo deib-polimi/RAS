@@ -1,6 +1,6 @@
 from .controller import Controller
 
-MAX_SCALE_OUT_TIMES = 10000
+MAX_SCALE_OUT_TIMES = 10000000
 MIN_CORES = 0.1
 
 class CTControllerScaleXNode(Controller):
