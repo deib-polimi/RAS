@@ -17,6 +17,7 @@ class CTControllerScaleXNode(Controller):
         self.xc_precs = [0] * self.N
 
     def control(self, t):
+        print(self.DCs)
         rts = self.monitoring.getRT()
         for i in range(self.N):
             e = 1/self.setpoint[i] - 1/rts[i]
