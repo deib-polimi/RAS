@@ -6,7 +6,7 @@ from applications import AppsCluster
 from math import ceil
 from monitoring import Monitoring, MultiMonitoring
 import numpy as np
-from commons import SN1, SN2, SP1, SP2, SP3, RP1, RP2, ALL
+from commons import SN1, SN2, SP2, SP3, RP1, RP2, ALL
 from itertools import combinations
 import sys
 
