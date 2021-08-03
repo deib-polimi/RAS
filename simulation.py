@@ -73,6 +73,7 @@ class Simulation:
             m = min([m1, m2])
             M = max([M1, M2])
             M = 2 * sla
+            print(self.app.sla)
             ax1.set_ylim([m, M])
             ax2.set_ylim([m, M])
             fig.tight_layout()

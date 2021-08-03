@@ -131,7 +131,7 @@ class AppsCluster(Application):
     monitoringWindow=None
     isDeterministic=None
     
-    def __init__(self,appNames,srateAvg,initCores,isDeterministic=True,monitoringWindow=1,horizon=None):
+    def __init__(self,appNames,srateAvg,initCores, isDeterministic=True,monitoringWindow=1,horizon=None):
         self.init_cores = initCores
         self.disturbance=0
         self.appNames=appNames
