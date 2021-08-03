@@ -57,7 +57,7 @@ class Simulation:
             ax2.plot(cores, 'b-', linewidth=2)
             ax2.set_ylabel('# cores')
             fig.tight_layout()
-            plt.savefig("experiments/%s-%d-workcore.pdf" % (self.name, i))
+            plt.savefig("experiments/%s-%d-workcore.png" % (self.name, i))
             plt.close()
 
             fig, ax1 = plt.subplots()
@@ -75,7 +75,7 @@ class Simulation:
             ax1.set_ylim([m, M])
             ax2.set_ylim([m, M])
             fig.tight_layout()
-            plt.savefig("experiments/%s-%d-rt.pdf" % (self.name, i))
+            plt.savefig("experiments/%s-%d-rt.png" % (self.name, i))
             plt.close()
             i += 1
 
