@@ -25,4 +25,4 @@ RP2.setName("RP2")
 
 
 
-ALL = [SN1, SN2, SP1, SP2, SP3, RP1, RP2]
+ALL = [SN1, SN2, SP2, SP3, RP1, RP2]
