@@ -13,7 +13,7 @@ SN2.setName("SN2")
 SP2 = StepGen([50, 800, 1000], [50, 30000, 50])
 SP2.setName("SP2")
 
-SP3 = StepGen([10, 30, 50], [1000, 10000, 1000])
+SP3 = StepGen([10, 30, 50], [50, 30000, 50])
 SP3.setName("SP3")
 
 RP1 = RampGen(10, 800)
