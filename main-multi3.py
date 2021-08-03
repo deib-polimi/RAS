@@ -15,7 +15,7 @@ name = sys.argv[0].split('.')[0]
 stimes=[0.1, 0.4] # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
 appsCount = len(stimes)
 appsSLA = [x*2 for x in stimes]
-horizon = 100
+horizon = 50
 monitoringWindow = 1
 ctPeriod = 1
 maxCores = 200000
@@ -27,7 +27,7 @@ app=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=initCores,isDetermini
 AppsCluster.sla=appsSLA
 
 
-c1 = CTControllerScaleXNode(1, initCores, maxCores, BCs=[0,0], DCs=[150, 600])
+c1 = CTControllerScaleXNode(1, initCores, maxCores, BCs=[0,0], DCs=[50, 200])
 c2 = OPTCTRL(monitoringWindow, init_cores=initCores, st=0.8, stime=[1/stimes[i] for i in range(appsCount)],maxCores=maxCores)
 c2.setName("OPTCTRL")
 c2.reset()
