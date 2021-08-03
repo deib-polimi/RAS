@@ -27,7 +27,7 @@ app=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=initCores,isDetermini
 AppsCluster.sla=appsSLA
 
 
-c1 = CTControllerScaleXNode(1, initCores, maxCores, BC=3, DC=15)
+c1 = CTControllerScaleXNode(1, initCores, maxCores, BC=0, DC=1500)
 c2 = OPTCTRL(monitoringWindow, init_cores=initCores, st=0.8, stime=[1/stimes[i] for i in range(appsCount)],maxCores=maxCores)
 c2.setName("OPTCTRL")
 c2.reset()
