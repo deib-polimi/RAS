@@ -19,8 +19,7 @@ class CTControllerScaleXNode(Controller):
     def control(self, t):
         rts = self.monitoring.getRT()
         for i in range(self.N):
-            rt = rts[i]
-            e = 1/self.setpoint[i] - 1/rt
+            e = 1/self.setpoint[i] - 1/rts[i]
             print(f'app {i} error:', e)
             #xc = float(self.xc_precs[i] + self.BC * e)
             oldcores = self.cores[i]
