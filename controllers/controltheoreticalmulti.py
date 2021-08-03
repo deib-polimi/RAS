@@ -1,6 +1,6 @@
 from .controller import Controller
 
-MAX_SCALE_OUT_TIMES = 5
+MAX_SCALE_OUT_TIMES = 10000
 MIN_CORES = 0.1
 
 class CTControllerScaleXNode(Controller):
@@ -21,7 +21,7 @@ class CTControllerScaleXNode(Controller):
         for i in range(self.N):
             rt = rts[i]
             e = 1/self.setpoint[i] - 1/rt
-            print(i, e)
+            print(f'app {i} error:', e)
             xc = float(self.xc_precs[i] + self.BC * e)
             oldcores = self.cores[i]
 
