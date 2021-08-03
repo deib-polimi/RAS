@@ -48,7 +48,7 @@ class Simulation:
             acores = [acores]
             aviolations = [aviolations]
             ausers = [ausers]
-        for (rts, cores, users) in zip(arts, acores, ausers, self.app):
+        for (rts, cores, users) in zip(arts, acores, ausers):
             fig, ax1 = plt.subplots()
             ax1.set_ylabel('# workload')
             ax1.set_xlabel("time [s]")
