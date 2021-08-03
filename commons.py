@@ -6,8 +6,8 @@ SN1.setName("SN1")
 SN2 = SinGen(1000, 1000, 1500)
 SN2.setName("SN2")
 
-SP1 = StepGen(range(0, 100, 1000), range(0, 10000, 1000))
-SP1.setName("SP1")
+#SP1 = StepGen(range(0, 100, 1000), range(0, 10000, 1000))
+#SP1.setName("SP1")
 
 
 SP2 = StepGen([50, 800, 1000], [50, 30000, 50])
