@@ -73,7 +73,7 @@ class Simulation:
             m = min([m1, m2])
             M = max([M1, M2])
             print(M)
-            M = self.app.sla[i]*2
+            m, M = 0, self.app.sla[i]*5
             print(self.app.sla)
             ax1.set_ylim([m, M])
             ax2.set_ylim([m, M])
