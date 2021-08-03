@@ -34,7 +34,7 @@ c2.reset()
 
 
 
-runner = Runner(horizon, [c2, c1], monitoringWindow, app, lambda window, sla: MultiMonitoring([Monitoring(monitoringWindow, appsSLA[i]) for i in range(appsCount)]), name=name)
+runner = Runner(horizon, [c1], monitoringWindow, app, lambda window, sla: MultiMonitoring([Monitoring(monitoringWindow, appsSLA[i]) for i in range(appsCount)]), name=name)
 g = MultiGenerator([SN2, SN2])
 #runner.run(g)
 
