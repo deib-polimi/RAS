@@ -4,11 +4,11 @@ MAX_SCALE_OUT_TIMES = 10000000
 MIN_CORES = 0.1
 
 class CTControllerScaleXNode(Controller):
-    def __init__(self, period, init_cores: list, max_cores, BC=0.5, DC=0.95):
+    def __init__(self, period, init_cores: list, max_cores, BCs, DCs):
         super().__init__(period, init_cores)
         #print(init_cores)
-        self.BC = BC
-        self.DC = DC
+        self.BCs = BCs
+        self.DCs = DCs
         self.N = len(init_cores)
         self.max_cores = max_cores
 
@@ -26,7 +26,7 @@ class CTControllerScaleXNode(Controller):
             oldcores = self.cores[i]
 
             #self.cores[i] = min(max(max(MIN_CORES, oldcores/MAX_SCALE_OUT_TIMES), xc + self.DC * e), oldcores*MAX_SCALE_OUT_TIMES)
-            self.cores[i] = max(0.001, self.DC*e)
+            self.cores[i] = max(0.001, self.DCs[i]*e)
           
 
         allocations = sum(self.cores)
