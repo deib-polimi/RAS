@@ -20,7 +20,7 @@ class CTControllerScaleXNode(Controller):
         rts = self.monitoring.getRT()
         for i in range(self.N):
             rt = rts[i]
-            e = self.setpoint[i] - rt
+            e = 1/self.setpoint[i] - 1/rt
             print(i, e)
             xc = float(self.xc_precs[i] + self.BC * e)
             oldcores = self.cores[i]
@@ -30,13 +30,13 @@ class CTControllerScaleXNode(Controller):
                 self.cores[i] = self.init_cores[i]
 
         allocations = sum(self.cores)
-        print(1, self.cores)
+        print("desired cores", self.cores)
         if allocations > self.max_cores:
             for i in range(self.N):
                 self.cores[i] = self.cores[i] * self.max_cores / allocations
         for i in range(self.N):
             self.xc_precs[i] = float(self.cores[i] - self.BC * e)
-        print(2, self.cores)
+        print("actuated cores", self.cores)
 
     
     def setSLA(self, sla):
