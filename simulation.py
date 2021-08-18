@@ -2,6 +2,7 @@ from generators import Generator
 from applications import Application
 from numpy import array
 import matplotlib.pyplot as plt
+import time
 
 plt.rcParams.update({'font.size': 18})
 
@@ -23,6 +24,7 @@ class Simulation:
             self.monitoring.tick(t, rt, users, self.app.cores)
             cores = self.controller.tick(t)
             self.app.cores = cores
+            time.sleep(30.5)
       
     def log(self):
         arts = array(self.monitoring.getAllRTs())

@@ -6,7 +6,7 @@ from estimator import QNEstimaator
 
 class OPTCTRL(Controller):
     
-    esrimationWindow=20;
+    esrimationWindow=40;
     rtSamples=None
     cSamples=None
     userSamples=None
