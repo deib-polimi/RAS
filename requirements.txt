@@ -3,3 +3,4 @@ matplotlib
 simpy
 scipy
 casadi
+redis

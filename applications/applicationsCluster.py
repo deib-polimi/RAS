@@ -35,6 +35,7 @@ class App():
     redis=None
     samplingInterval=30
     thinktime=1
+    quantum=0.00001
 
     # env: simulation env
     # cpuQuota: core
@@ -73,8 +74,8 @@ class App():
         self.rTime=[]
         
         #start monitoring
-        self.env.process(self.updateCpuQuota())
-        self.env.process(self.sampleRT())
+        #self.env.process(self.updateCpuQuota())
+        #self.env.process(self.sampleRT())
         self.env.process(self.addUser())
         
         
@@ -88,8 +89,6 @@ class App():
         
     def doWork(self,app,user):
         
-        redis_conn = redis.Redis(connection_pool=self.redispool)
-        
         if(self.isDeterministic):
             isTime=1.0/app.mSt
         else:
@@ -97,16 +96,21 @@ class App():
         
         #simluate processor sharing
         d=(isTime)*(len(app.serving.items))/app.cpuQuota
-        yield self.env.timeout(np.maximum(d,isTime))
+        sf=np.maximum(d,isTime)/isTime
+        yield self.env.timeout(self.quantum)
+        isTime-=self.quantum/sf
+        while(isTime>0):
+            d=(isTime)*(len(app.serving.items))/app.cpuQuota
+            sf=np.maximum(d,isTime)/isTime
+            yield self.env.timeout(self.quantum)
+            isTime-=self.quantum/sf
+        yield self.serving.get()
         
         #record Rtime of this center
         if(user.issueTime is not None):
             self.rTime.append(app.env.now-user.issueTime)
         else:
             self.rTime.append(app.env.now)
-        
-        yield self.serving.get()
-        redis_conn.close()
     
     def updateCpuQuota(self):
         redis_conn = redis.Redis(connection_pool=self.redispool)
@@ -137,6 +141,7 @@ class App():
                     u2add=int(u2add)
                     #redis_conn.set("%s_u2add"%(self.name),0)
                     for i in range(u2add):
+                        print("adding user")
                         yield self.backlog.put(User(uuid.uuid4(),issueTime=self.env.now))
                 except:
                     raise ValueError("invalid number of users for application %s"%(self.name))
@@ -190,7 +195,7 @@ class AppsCluster(Application):
     
     def deployCluster(self,X0,S,MU,Names,std=None):
     
-        self.cluster["env"]=simpy.rt.RealtimeEnvironment(factor=1)
+        self.cluster["env"]=simpy.rt.RealtimeEnvironment(factor=1,strict=True)
         #self.cluster["env"]=simpy.Environment()
         self.cluster["apps"]={};
         
@@ -251,12 +256,12 @@ if __name__ == "__main__":
     srateAvg=[1/0.1, 1/0.4];
     #numper of users per applications
     #reserved cpus quaota per applications
-    cores=[20,20]
+    cores=[1,1]
     
-    cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=False)
+    cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=True)
     while(True):
-        cluster.__computeRT__([10,10])
-        time.sleep(32)
+        cluster.__computeRT__([2,2])
+        time.sleep(30)
         
         
     rdb.close()
