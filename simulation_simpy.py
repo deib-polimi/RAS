@@ -5,13 +5,15 @@ from math import ceil
 from monitoring import Monitoring, MultiMonitoring
 import numpy as np
 from commons import SN1, SN2, SP2, RP1, RP2, ALL
-from itertools import combinations
 import sys
 import simpy
 from controllers import qnTransient
 import casadi
 import matplotlib.pyplot as plt
-import multiprocessing
+from pathlib import Path
+import os
+
+cwd=os.path.dirname(os.path.abspath(__file__))
 
 def optCtrl(optQueue,opt2Queue,P,MU,S,H,tgt,optdt):
     sold=None
@@ -122,10 +124,10 @@ rt=[]
 users=[]
 cores=[]
 cores_i=[]
-tgt=5
+tgt=1.5
 H=10
 sold=None
-simStep=10*10
+simStep=10*100
 optQueue=None
 opt2Queue=None
 optProc=None
@@ -144,7 +146,7 @@ X0=[1]
 cores_init=[1]
 
 #workload generator
-g = MultiGenerator([RP1])
+g = MultiGenerator([SN1])
 c1 = CTControllerScaleXNode(1, cores_init, 100000, BCs=[10], DCs=[90])
 c1.cores=cores_init
 c1.setSLA([tgt*1/srateAvg[0]])
@@ -162,17 +164,32 @@ env.process(monitoringLoop(env,cluster,mtDt))
 env.process(simulation(env,cluster,10*mtDt,g))
 env.run(until=mtDt*simStep)
 
+Path("%s/experiments/"%(cwd)).mkdir(parents=True, exist_ok=True)
+
 plt.figure()
 plt.plot(rt)
 plt.axhline(y = tgt*1.0/srateAvg[0], color = 'r', linestyle = '--')
 plt.ylim(0,np.max(rt)*1.5)
+plt.savefig("./experiments/rt.pdf")
 
-plt.figure()
-plt.plot(users)
-plt.ylim(0,np.max(users)*1.5)
+# plt.figure()
+# plt.plot(users)
+# plt.ylim(0,np.max(users)*1.5)
+# plt.savefig("./experiments/workload.pdf")
+#
+# plt.figure()
+# plt.plot(cores)
+# plt.ylim(0,np.max(cores)*1.5)
+# plt.savefig("./experiments/allocation.pdf")
+fig, ax = plt.subplots()
+ax2 = ax.twinx()
 
-plt.figure()
-plt.plot(cores)
-plt.ylim(0,np.max(cores)*1.5)
+ax.plot(users, color="r")
+ax.set_xlabel('time (k*30s)')
+ax.set_ylabel('Workload')
 
-plt.show()
+ax2.plot(cores, color="b")
+ax2.set_ylabel('Allocation')
+plt.savefig("./experiments/wrall.pdf")
+
+#plt.show()

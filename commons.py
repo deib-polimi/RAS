@@ -1,6 +1,6 @@
 from generators import *
 
-SN1 = SinGen(500, 700, 200)
+SN1 = SinGen(50*3, 70*3, 20*3)
 SN1.setName("SN1")
 
 SN2 = SinGen(1000, 1000, 1500)
