@@ -4,7 +4,7 @@ Created on 12 gen 2021
 @author: emilio
 '''
 
-import simpy.rt
+import simpy
 from scipy.stats import truncnorm
 import numpy as np
 import uuid
@@ -26,16 +26,16 @@ class App():
     name=None
     stime=None
     rTime=None
+    users=None
     stdSt=None
     mSt=None
     tRate=None
     isDeterministic=None
     toAdd=None
-    sharedData=None
     redis=None
-    samplingInterval=30
-    thinktime=1
-    quantum=0.00001
+    samplingInterval=0.01
+    queueLength=None
+    quantum=10**(-4)
 
     # env: simulation env
     # cpuQuota: core
@@ -44,7 +44,7 @@ class App():
     # nThreads: application threads 
     # stdST: std service rate
     # isDetermistic: service rate constant (mST) or not
-    def __init__(self,env,cpuQuota,name,initUsers,mSt,nThreads=-1,stdSt=None,tRate=1.0,sharedData=None,isDeterministic=False):
+    def __init__(self,env,cpuQuota,name,initUsers,mSt,nThreads=-1,stdSt=None,tRate=None,isDeterministic=False,isOpen=False):
         self.sla=1.0
         self.disturbance=0
         self.env=env
@@ -58,97 +58,91 @@ class App():
         self.tRate=tRate
         self.toAdd=0
         self.redispool=redis.ConnectionPool(host="localhost")
-        
-        self.sharedData=sharedData
+        self.queueLength=[]
         
         self.serving=simpy.Store(env)
         self.backlog=simpy.Store(env)
         
+        print(isOpen)
+        
         #settoLostatoIniziale
-        for u in initUsers:
-            self.backlog.put(u)
+        if(not isOpen):
+            for u in initUsers:
+                self.backlog.put(u)
+        else:
+            self.tRate=initUsers
+            self.env.process(self.think()) 
         
         self.env.process(self.serve()) 
             
         self.stime={}
         self.rTime=[]
+        self.users=[]
         
-        #start monitoring
-        #self.env.process(self.updateCpuQuota())
-        #self.env.process(self.sampleRT())
-        self.env.process(self.addUser())
         
         
     def serve(self):
         while True:
-            user=yield self.backlog.get()
-            yield self.serving.put(user)
+            user=yield self.backlog.get() 
             
-            self.env.process(self.doWork(self,user))
+            user.action=self.env.process(self.doWork(self,user))
+            yield self.serving.put(user)
             
         
     def doWork(self,app,user):
-        
         if(self.isDeterministic):
             isTime=1.0/app.mSt
         else:
-            isTime=np.random.exponential(1.0/app.mSt)
+            isTime=np.random.exponential(1.0/self.mSt)
         
-        #simluate processor sharing
-        d=(isTime)*(len(app.serving.items))/app.cpuQuota
-        sf=np.maximum(d,isTime)/isTime
-        yield self.env.timeout(self.quantum)
-        isTime-=self.quantum/sf
-        while(isTime>0):
-            d=(isTime)*(len(app.serving.items))/app.cpuQuota
-            sf=np.maximum(d,isTime)/isTime
-            yield self.env.timeout(self.quantum)
-            isTime-=self.quantum/sf
-        yield self.serving.get()
+        isdone=False
+        sf=None
+        startExec=None
+        it=0
+        while(not isdone and isTime>0):
+            try:
+                startExec=self.env.now
+                d=(isTime)*(len(app.serving.items))/self.cpuQuota  
+                sf=np.maximum(d,isTime)/isTime      
+                yield self.env.timeout(np.maximum(d,isTime))
+                isdone=True
+            except simpy.Interrupt:
+                isTime-=(self.env.now-startExec)/sf
+            it+=1
         
+        self.serving.items.remove(user)
+        self.interruptExecution() 
+
         #record Rtime of this center
         if(user.issueTime is not None):
             self.rTime.append(app.env.now-user.issueTime)
         else:
             self.rTime.append(app.env.now)
+        
     
-    def updateCpuQuota(self):
-        redis_conn = redis.Redis(connection_pool=self.redispool)
+    def think(self):
         while True:
-            quota=redis_conn.get("%s_quota"%(self.name))
-            if(quota is not None):
-                self.cpuQuota=float(quota)
-            else:
-                raise ValueError("No cpu Quota speciied for application %s"%(self.name))
-            yield self.env.timeout(self.samplingInterval/2)
-        redis_conn.close()
-    
-    def sampleRT(self):
-        redis_conn = redis.Redis(connection_pool=self.redispool)
+            yield self.env.timeout(np.random.exponential(1.0/self.tRate))
+            yield self.backlog.put(User(uuid.uuid4(),issueTime=self.env.now))
+        
+    def sampleQueueLength(self):
         while True:
             yield self.env.timeout(self.samplingInterval)
-            redis_conn.set("%s_rt"%(self.name),str(np.mean(self.rTime)))
-            self.rTime=[]
-        redis_conn.close()
+            self.queueLength.append(len(self.serving.items)+len(self.backlog.items))
     
-    #simulo la presenza di un think rate variabile e controllabile dall'esterno
-    def addUser(self):
-        redis_conn = redis.Redis(connection_pool=self.redispool)
-        while True:
-            u2add=redis_conn.get("%s_u2add"%(self.name))
-            if(u2add is not None):
-                try:
-                    u2add=int(u2add)
-                    #redis_conn.set("%s_u2add"%(self.name),0)
-                    for i in range(u2add):
-                        print("adding user")
-                        yield self.backlog.put(User(uuid.uuid4(),issueTime=self.env.now))
-                except:
-                    raise ValueError("invalid number of users for application %s"%(self.name))
-            else:
-                raise ValueError("invalid number of users for application %s"%(self.name))
-            yield self.env.timeout(self.thinktime)
-        redis_conn.close()
+    def sampleRT(self,resetData=True):
+        rt=np.mean(self.rTime)
+        if(resetData):
+            self.rTime=[]
+        return rt
+        
+        
+    def sampleQueue(self):
+        return len(self.backlog.items)+len(self.serving.items)
+    
+    def interruptExecution(self):
+        for u in self.serving.items:
+            u.action.interrupt()
 
 class AppsCluster(Application):
     
@@ -162,8 +156,10 @@ class AppsCluster(Application):
     isDeterministic=None
     cluster=None
     rdb=None
+    env=None
+    X0=None
     
-    def __init__(self,appNames,srateAvg,initCores, isDeterministic=True,monitoringWindow=1,horizon=None):
+    def __init__(self,appNames,srateAvg,initCores, isDeterministic=True,monitoringWindow=1,horizon=None,X0=None,env=None):
         self.init_cores = initCores
         self.disturbance=0
         self.appNames=appNames
@@ -174,37 +170,31 @@ class AppsCluster(Application):
         self.monitoringWindow=monitoringWindow
         self.horizon=horizon
         self.isDeterministic=isDeterministic
+        self.env=env
+        self.X0=X0
         
         self.cluster={}
-        self.sharedData=multiprocessing.Manager().dict()
+        self.deployCluster(X0, self.cores, self.srateAvg, self.appNames, self.stdrateAvg)
         
-        self.deployCluster([0]*len(self.appNames), self.cores, self.srateAvg, self.appNames, self.stdrateAvg)
+        #startCluster(self.cluster)
         
-        rdb=redis.Redis()
-        
-        for i in range(len(self.appNames)):
-            rdb.set("%s_quota"%(self.appNames[i]),"%d"%(self.cores[i]))
-            rdb.set("%s_u2add"%(self.appNames[i]),0)
-            rdb.set("%s_rt"%(self.appNames[i]),0)
-        
-        rdb.close()
-        
-        p=multiprocessing.Process(target=startCluster, args=(self.cluster,))
-        p.start()
+        # p=multiprocessing.Process(target=startCluster, args=(self.cluster,))
+        # p.start()
     
     
     def deployCluster(self,X0,S,MU,Names,std=None):
     
-        self.cluster["env"]=simpy.rt.RealtimeEnvironment(factor=1,strict=True)
+        #self.cluster["env"]=simpy.rt.RealtimeEnvironment(factor=1.0,strict=True)
         #self.cluster["env"]=simpy.Environment()
+        self.cluster["env"]=self.env
         self.cluster["apps"]={};
         
         #dichiaro tutte le applicazioni del cluster
         for i in range(len(Names)):
             initPop=[]
-            for k in range(X0[i]):
-                initPop.append(User(uuid.uuid4()))       
-            self.cluster["apps"][Names[i]]=App(self.cluster["env"],S[i],Names[i],initPop,MU[i],sharedData=self.sharedData,isDeterministic=self.isDeterministic)
+            # for k in range(X0[i]):
+            #     initPop.append(User(uuid.uuid4()))       
+            self.cluster["apps"][Names[i]]=App(self.cluster["env"],S[i],Names[i],X0[i],MU[i],isDeterministic=self.isDeterministic,isOpen=True)
 
         
     
@@ -221,12 +211,31 @@ class AppsCluster(Application):
             #campiono il response time misrurato per questa applicazione
             rtime[key]=float(rdb.get("%s_rt"%(val)))
             #aggiorno il numero di core calcolati dal controllore
-            rdb.set("%s_quota"%(val),"%d"%(self.cores[key]))
-            
+            rdb.set("%s_quota"%(val),"%.4f"%(self.cores[key]))
+        
         print(rtime)
+            
         return rtime
     
-    def reset(self): pass
+    def sampleQueue(self):
+        return [self.cluster["apps"][val].sampleQueue() for key,val in enumerate(self.cluster["apps"])]
+    
+    def sampleRT(self,reset=True):
+        return [self.cluster["apps"][val].sampleRT(reset) for key,val in enumerate(self.cluster["apps"])]
+    
+    def getRT(self):
+        return self.sampleRT(False)
+    
+    def updateCores(self,Cores):
+        for key,val in enumerate(self.cluster["apps"]):
+            self.cluster["apps"][val].cpuQuota=Cores[key]
+            self.cluster["apps"][val].interruptExecution()
+    
+    def updateTRate(self,tRate):
+        self.X0=tRate
+        for key,val in enumerate(self.cluster["apps"]):
+            self.cluster["apps"][val].tRate=tRate[key]
+            
         
 
 
@@ -243,27 +252,30 @@ class User(object):
         self.issueTime=issueTime;
         
 
-def startCluster(cluster):
-    cluster["env"].run()
-    
-            
     
 if __name__ == "__main__":
     rdb=redis.Redis()
     #applications names
-    Names=["App1","App2"];
+    Names=["App1"];
     #average service rate per applications
-    srateAvg=[1/0.1, 1/0.4];
-    #numper of users per applications
+    srateAvg=[1.0/0.2, 1/0.4];
+    #arrival rates per applications
+    X0=[10]
     #reserved cpus quaota per applications
-    cores=[1,1]
+    cores=[2]
     
-    cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=True)
-    while(True):
-        cluster.__computeRT__([2,2])
-        time.sleep(30)
-        
-        
-    rdb.close()
+    HCores=[]
+    Huser=[]
+    Hrt=[]
+    
+    env=simpy.Environment()
+    cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=False,X0=X0,env=env)
+    
+    plt.figure()
+    for key,val in enumerate(cluster.cluster["apps"]):
+        print(np.mean(cluster.cluster["apps"][val].queueLength))
+        print(len(cluster.cluster["apps"][val].queueLength))
+        plt.plot(cluster.cluster["apps"][val].queueLength)
+    plt.show()
 
     

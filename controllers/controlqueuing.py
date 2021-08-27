@@ -6,7 +6,7 @@ from estimator import QNEstimaator
 
 class OPTCTRL(Controller):
     
-    esrimationWindow=40;
+    esrimationWindow=10;
     rtSamples=None
     cSamples=None
     userSamples=None
@@ -124,13 +124,21 @@ class OPTCTRL(Controller):
         
         self.addRtSample(rt,users,self.cores)
         
-        mRt=np.array(self.rtSamples).mean(axis=0)
-        mCores=np.array(self.cSamples).mean(axis=0)
-        mUsers=np.array(self.userSamples).mean(axis=0)
+        # mRt=np.array(self.rtSamples).mean(axis=0)
+        # mCores=np.array(self.cSamples).mean(axis=0)
+        # mUsers=np.array(self.userSamples).mean(axis=0)
         
         #i problemi di stima si possono parallelizzare
         for app in range(len(rt)):
-            self.stime[app]=self.estimator.estimate(mRt[app], mCores[app],mUsers[app])
+            #estim=[]
+            # self.stime[app]=self.estimator.estimate(mRt[app], mCores[app],mUsers[app])
+            # for s in range(len(self.rtSamples)):
+            #     estim.append(self.estimator.estimate(self.rtSamples[s][app],
+            #                                        self.cSamples[s][app],
+            #                                        self.userSamples[s][app]))
+            self.stime[app]=self.estimator.estimate(np.array(self.rtSamples)[:,app].tolist(),
+                                    np.array(self.cSamples)[:,app].tolist(),
+                                    np.array(self.userSamples)[:,app].tolist())
            
         if(self.generator!=None):
             users=self.generator.f(t+1)    
