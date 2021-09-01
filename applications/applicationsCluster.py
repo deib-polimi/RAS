@@ -86,7 +86,8 @@ class App():
             user=yield self.backlog.get() 
             
             user.action=self.env.process(self.doWork(self,user))
-            yield self.serving.put(user)
+            yield  self.serving.put(user)
+            self.interruptExecution()
             
         
     def doWork(self,app,user):

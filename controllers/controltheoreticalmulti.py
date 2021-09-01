@@ -13,6 +13,7 @@ class CTControllerScaleXNode(Controller):
         self.DCs = DCs
         self.N = len(init_cores)
         self.max_cores = max_cores
+        self.xc_precs=[0]*self.N
 
     def reset(self):
         super().reset()
@@ -24,12 +25,15 @@ class CTControllerScaleXNode(Controller):
         for i in range(self.N):
             if(np.isnan(rts[i])):
                 raise ValueError(self.cores,t)
-            e = 1/self.setpoint[i] - 1/rts[i]
+            
+            e = (1.0/self.setpoint[i]) - (1.0/rts[i])
             #print(f'app {i} error:', e)
-            #xc = float(self.xc_precs[i] + self.BC * e)
-            #oldcores = self.cores[i]
-            #self.cores[i] = min(max(max(MIN_CORES, oldcores/MAX_SCALE_OUT_TIMES), xc + self.DC * e), oldcores*MAX_SCALE_OUT_TIMES)
-            self.cores[i] = max(0.001, self.DCs[i]*e)    
+            xc = self.xc_precs[i] + self.BCs[i] * e
+            oldcores = self.cores[i]
+            self.cores[i] = min(max(max(MIN_CORES, oldcores/MAX_SCALE_OUT_TIMES), xc + self.DCs[i] * e), oldcores*MAX_SCALE_OUT_TIMES)
+            self.xc_precs[i] = self.cores[i] - self.BCs[i] * e
+            
+            #self.cores[i] = max(0.001, self.DCs[i]*e)
           
 
         allocations = sum(self.cores)

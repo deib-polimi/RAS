@@ -12,8 +12,22 @@ import casadi
 import matplotlib.pyplot as plt
 from pathlib import Path
 import os
+import collections
 
 cwd=os.path.dirname(os.path.abspath(__file__))
+
+class systemMnt():
+    rt = None
+    
+    def __init__(self):
+        self.rt=collections.deque(maxlen=50)
+        
+    def getRT(self):
+        if(len(self.rt)==0):
+            return None
+        else:
+            return  [np.mean(self.rt)]
+        
 
 def optCtrl(optQueue,opt2Queue,P,MU,S,H,tgt,optdt):
     sold=None
@@ -77,34 +91,34 @@ def controlLoop(env,cluster,dt):
         #print(opts)
         # cluster.cores=[opts[1]]
         
+        # cluster.cores=[max(q/tgt,0.0001)]
+        # cluster.updateCores(cluster.cores)
+        # cores_i.append(cluster.cores[0])
         
-        
-        
-        cluster.cores=[max(q/tgt,0.0001)]
-        cluster.updateCores(cluster.cores)
-        cores_i.append(cluster.cores[0])
-        
-        # if(not np.isnan(cluster.getRT()[0])):
-        #     c1.control(env.now)
-        #     cluster.cores=c1.cores
-        #     print(c1.cores)
-        #     cluster.updateCores(c1.cores)
-        #     cores_i.append(c1.cores)
+        if(mnt.getRT() is not None):
+            c1.control(env.now)
+            cluster.cores=c1.cores
+            cluster.updateCores(c1.cores)
+            cores_i.append(c1.cores)
         # else:
-        #     print("is nan")
+        #     print("reset controller")
+        #      cluster.sampleRT(True)
+        #      c1.reset()
+        #     toUpdate=False
         
 
 def monitoringLoop(env,cluster,dt):
-    global rt,MU,users,cores,cores_i
+    global mnt,MU,users,cores,cores_i,RT
     while True:
         yield env.timeout(dt)
-        rts=cluster.sampleRT(False)
+        rts=cluster.sampleRT(True)
         if(not np.isnan(rts)):
-            rt.append(rts)
+            mnt.rt.append(rts)
+            RT.append(rts)
             users.append(cluster.X0)
             cores.append(np.mean(cores_i))
             cores_i=[]
-            print(len(rt),rt[-1],users[-1],env.now)
+            print("Monitoring",cluster.cores,mnt.getRT(),users[-1],env.now)
 
 
 def simulation(env,cluster,dt,g):
@@ -113,29 +127,31 @@ def simulation(env,cluster,dt,g):
     while True:
         print("update trate",g.f(it))
         print(env.now*100/(mtDt*simStep))
-        cluster.sampleRT(True)
         cluster.updateTRate(g.f(it))
+        cluster.sampleRT(True)
         toUpdate=True
         yield env.timeout(dt)
         it+=1
 
 
-rt=[]
 users=[]
 cores=[]
 cores_i=[]
-tgt=1.5
+RT=[]
+tgt=3.0
 H=10
 sold=None
-simStep=10*100
+holdingTime=300
+changePoints=1
+simStep=changePoints*holdingTime
 optQueue=None
 opt2Queue=None
 optProc=None
 toUpdate=False
 
 optdt=10**(-1) # dt all'interno del problema di ottimo
-ctrlPeriod=optdt
 mtDt=30
+ctrlPeriod=optdt
 #applications names
 Names=["App1"];
 #average service rate per applications
@@ -143,13 +159,16 @@ srateAvg=[10];
 #arrival rates per applications
 X0=[1]
 #reserved cpus quaota per applications
-cores_init=[1]
+cores_init=[10]
+#monitor object
+mnt=systemMnt()
 
 #workload generator
 g = MultiGenerator([SN1])
-c1 = CTControllerScaleXNode(1, cores_init, 100000, BCs=[10], DCs=[90])
+c1 = CTControllerScaleXNode(1, cores_init, 100, BCs=[10**-3], DCs=[10**-3])
 c1.cores=cores_init
 c1.setSLA([tgt*1/srateAvg[0]])
+c1.monitoring=mnt
 
 HCores=[]
 Huser=[]
@@ -157,19 +176,17 @@ Hrt=[]
 
 #env=simpy.rt.RealtimeEnvironment(factor=1.0,strict=True)
 env=simpy.Environment()
-cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores_init,isDeterministic=False,X0=X0,env=env)
-c1.monitoring=cluster
-env.process(controlLoop(env,cluster,ctrlPeriod))
+cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores_init,isDeterministic=True,X0=X0,env=env)
+env.process(simulation(env,cluster,holdingTime*mtDt,g))
 env.process(monitoringLoop(env,cluster,mtDt))
-env.process(simulation(env,cluster,10*mtDt,g))
+env.process(controlLoop(env,cluster,ctrlPeriod))
 env.run(until=mtDt*simStep)
 
 Path("%s/experiments/"%(cwd)).mkdir(parents=True, exist_ok=True)
 
 plt.figure()
-plt.plot(rt)
+plt.plot(RT)
 plt.axhline(y = tgt*1.0/srateAvg[0], color = 'r', linestyle = '--')
-plt.ylim(0,np.max(rt)*1.5)
 plt.savefig("./experiments/rt.pdf")
 
 # plt.figure()
