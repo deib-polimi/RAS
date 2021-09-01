@@ -4,3 +4,4 @@ simpy
 scipy
 casadi
 redis
+tqdm
