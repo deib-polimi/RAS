@@ -1,6 +1,7 @@
 from generators import *
 
-SN1 = SinGen(50*0.1, 70*0.1, 20*0.1)
+
+SN1 = SinGen(50*3, 70*3, 20*3)
 SN1.setName("SN1")
 
 SN2 = SinGen(1000, 1000, 1500)
@@ -13,7 +14,7 @@ SN2.setName("SN2")
 SP2 = StepGen([50, 800, 1000], [50, 30000, 50])
 SP2.setName("SP2")
 
-SP3 = StepGen([10, 30, 50], [50, 30000, 50])
+SP3 = StepGen([10, 30, 50], [50, 3000, 50])
 SP3.setName("SP3")
 
 RP1 = RampGen(10, 800)

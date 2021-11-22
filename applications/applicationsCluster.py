@@ -4,14 +4,19 @@ Created on 12 gen 2021
 @author: emilio
 '''
 
-import simpy
-from scipy.stats import truncnorm
-import numpy as np
-import uuid
-import matplotlib.pyplot as plt
 import multiprocessing
 import time
+import uuid
+
 import redis
+from scipy.stats import truncnorm
+import simpy
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from butools.ph import *
+
 if __name__ == "__main__":
     from application import Application
 else:
@@ -32,7 +37,7 @@ class App():
     tRate=None
     isDeterministic=None
     toAdd=None
-    redis=None
+    redis=None 
     samplingInterval=0.01
     queueLength=None
     quantum=10**(-4)
@@ -60,8 +65,9 @@ class App():
         self.redispool=redis.ConnectionPool(host="localhost")
         self.queueLength=[]
         
-        self.serving=simpy.Store(env)
-        self.backlog=simpy.Store(env)
+        self.serving=simpy.Store(self.env)
+        self.backlog=simpy.Store(self.env)
+        self.swThreads=simpy.Resource(self.env,capacity=1)
         
         print(isOpen)
         
@@ -83,43 +89,47 @@ class App():
         
     def serve(self):
         while True:
-            user=yield self.backlog.get() 
-            
-            user.action=self.env.process(self.doWork(self,user))
-            yield  self.serving.put(user)
+            #richiedo il thread software
+            req=self.swThreads.request()
+            yield req
+            #recupero l'utente
+            user=yield self.backlog.get()    
+            self.serving.put(user)
+            user.action=self.env.process(self.doWork(user,req))
             self.interruptExecution()
-            
         
-    def doWork(self,app,user):
+        
+    def doWork(self,user,req):
         if(self.isDeterministic):
-            isTime=1.0/app.mSt
+            isTime=1.0/self.mSt
         else:
             isTime=np.random.exponential(1.0/self.mSt)
+            #isTime=sample_G_Stime(1.0/self.mSt,1.01/self.mSt,1)[0]
+            
         
         isdone=False
         sf=None
         startExec=None
-        it=0
         while(not isdone and isTime>0):
             try:
                 startExec=self.env.now
-                d=(isTime)*(len(app.serving.items))/self.cpuQuota  
+                d=(isTime)*(len(self.serving.items))/self.cpuQuota  
                 sf=np.maximum(d,isTime)/isTime      
                 yield self.env.timeout(np.maximum(d,isTime))
                 isdone=True
             except simpy.Interrupt:
                 isTime-=(self.env.now-startExec)/sf
-            it+=1
-        
+            
+        self.swThreads.release(req)
         self.serving.items.remove(user)
         self.interruptExecution() 
-
+    
         #record Rtime of this center
         if(user.issueTime is not None):
-            self.rTime.append(app.env.now-user.issueTime)
+            self.rTime.append(self.env.now-user.issueTime)
         else:
-            self.rTime.append(app.env.now)
-        
+            self.rTime.append(self.env.now)
+    
     
     def think(self):
         while True:
@@ -142,8 +152,19 @@ class App():
         return len(self.backlog.items)+len(self.serving.items)
     
     def interruptExecution(self):
+        newc=int(np.ceil(self.cpuQuota*1.2))
         for u in self.serving.items:
             u.action.interrupt()
+            
+        if(newc>self.swThreads.capacity):
+            self.swThreads._capacity=newc
+        elif(newc<self.swThreads.count):
+            self.swThreads._capacity=newc
+            
+
+    
+    def getSwThreads(self):
+        return self.swThreads.capacity
 
 class AppsCluster(Application):
     
@@ -237,11 +258,38 @@ class AppsCluster(Application):
         for key,val in enumerate(self.cluster["apps"]):
             self.cluster["apps"][val].tRate=tRate[key]
             
+    def getSwThreads(self):
+        return [self.cluster["apps"][val].getSwThreads() for key,val in enumerate(self.cluster["apps"])]
         
 
 
-def get_truncated_normal(mean=0, sd=1, low=0, upp=100):
-    return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
+def sample_G_Stime(X,std,nsamples):    
+    cx=std/X
+    
+    k=None
+    A=None
+    a=None
+    
+    if(cx<=1):
+        raise ValueError("low variance distribution not implemented yet")     
+    
+    else:
+        k=2
+        
+        mu1=2.0/X
+        mu2=1.0/(X*cx**2)
+        
+        p1=1.0/(2*cx**2)
+        
+        A=np.matrix([[-mu1,mu1*p1],
+                     [0,-mu2]])
+        
+        a=np.matrix([[1,0]])
+    
+    
+    x = SamplesFromPH(a, A, nsamples)
+    return x
+
         
 class User(object):
     ID=None

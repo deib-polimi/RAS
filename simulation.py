@@ -2,9 +2,9 @@ from generators import Generator
 from applications import Application
 from numpy import array
 import matplotlib.pyplot as plt
-import time
 
 plt.rcParams.update({'font.size': 18})
+
 
 class Simulation:
     def __init__(self, horizon, app, generator, monitoring, controller):
@@ -24,7 +24,6 @@ class Simulation:
             self.monitoring.tick(t, rt, users, self.app.cores)
             cores = self.controller.tick(t)
             self.app.cores = cores
-            time.sleep(30.5)
       
     def log(self):
         arts = array(self.monitoring.getAllRTs())
@@ -59,7 +58,7 @@ class Simulation:
             ax2.plot(cores, 'b-', linewidth=2)
             ax2.set_ylabel('# cores')
             fig.tight_layout()
-            plt.savefig("experiments/%s-%d-workcore.png" % (self.name, i))
+            plt.savefig("experiments/%s-%d-workcore.pdf" % (self.name, i))
             plt.close()
 
             fig, ax1 = plt.subplots()
@@ -67,20 +66,17 @@ class Simulation:
             ax1.set_xlabel("time [s]")
             ax1.plot(rts, 'g-', linewidth=2)
             ax2 = ax1.twinx()
-            ax2.plot([self.app.sla[i]] * len(rts),
+            ax2.plot([self.app.sla] * len(rts),
                     'r--', linewidth=2)
             ax2.set_ylabel('RT [s]')
             m1, M1 = ax1.get_ylim()
             m2, M2 = ax2.get_ylim()
             m = min([m1, m2])
             M = max([M1, M2])
-            print(M)
-            m, M = 0, self.app.sla[i]*5
-            print(self.app.sla)
             ax1.set_ylim([m, M])
             ax2.set_ylim([m, M])
             fig.tight_layout()
-            plt.savefig("experiments/%s-%d-rt.png" % (self.name, i))
+            plt.savefig("experiments/%s-%d-rt.pdf" % (self.name, i))
             plt.close()
             i += 1
 
