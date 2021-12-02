@@ -15,10 +15,13 @@ OPTCTRLPeriod = 1
 
 c1 = CTControllerScaleX(scaleXPeriod, initCores, 5, 30)
 c1.setName("ScaleX")
-c2 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=1, stime=stime)
+c2 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=1, stime=stime, maxCores=10**6)
 c2.setName("OPTCTRL")
                           
 runner = Runner(horizon, [c1, c2], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
+
+#runner = Runner(horizon, [c1, c2], monitoringWindow, Application1(appSLA))
+
 
 g = SinGen(500, 700, 200)
 g.setName("SN1")

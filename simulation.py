@@ -65,7 +65,8 @@ class Simulation:
             ax1.set_xlabel("time [s]")
             ax1.plot(rts, 'g-', linewidth=2)
             ax2 = ax1.twinx()
-            ax2.plot([self.app.sla[i]] * len(rts),
+            sla = self.app.sla[i] if isinstance(self.app.sla, list) else self.app.sla
+            ax2.plot([sla] * len(rts),
                     'r--', linewidth=2)
             ax2.set_ylabel('RT [s]')
             m1, M1 = ax1.get_ylim()
