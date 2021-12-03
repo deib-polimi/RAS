@@ -15,7 +15,6 @@ class Monitoring:
             del self.rts[0]
             del self.users[0]
 
-
         self.time.append(t)
         self.rts.append(rt)
         self.users.append(users)
