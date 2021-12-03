@@ -11,7 +11,7 @@ class OPTCTRL(Controller):
     cSamples=None
     userSamples=None
     
-    def __init__(self, period, init_cores, stime,maxCores,st=0.8):
+    def __init__(self, period, init_cores, stime,maxCores=1000,st=0.8):
         super().__init__(period, init_cores,st)
         self.stime=stime
         self.generator=None

@@ -18,7 +18,7 @@ c1.setName("ScaleX")
 c2 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=1, stime=stime, maxCores=10**6)
 c2.setName("OPTCTRL")
                           
-runner = Runner(horizon, [c1, c2], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
+runner = Runner(horizon, [c1, c2], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime))
 
 #runner = Runner(horizon, [c1, c2], monitoringWindow, Application1(appSLA))
 
