@@ -17,7 +17,7 @@ class Simulation:
 
     def run(self):
         for t in range(0, self.horizon):
-            print(t)
+            #print(t)
             users = self.generator.tick(t)
             rt = self.app.setRT(users)
             self.monitoring.tick(t, rt, users, self.app.cores)
@@ -98,3 +98,9 @@ class Simulation:
         plt.savefig("experiments/%s-workload.pdf" % (self.name,))
         plt.close()
         '''
+    
+    def getTotalViolations(self):
+        aviolations = self.monitoring.getViolations()
+        if not isinstance(aviolations, list):
+            aviolations = [aviolations]
+        return sum(aviolations)

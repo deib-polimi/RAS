@@ -49,3 +49,7 @@ class Runner:
     def plot(self):
         for s in self.simulations:
             s.plot()
+
+    def getTotalViolations(self):
+        print([s.getTotalViolations() for s in self.simulations])
+        return sum([s.getTotalViolations() for s in self.simulations])
