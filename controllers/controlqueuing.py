@@ -58,48 +58,51 @@ class OPTCTRL(Controller):
     
     def OPTController(self, e, tgt, C, maxCore):
         #print("stime:=", e, "tgt:=", tgt, "user:=", C)
-        self.model = casadi.Opti() 
-        nApp = len(tgt)
-        
-        T = self.model.variable(1, nApp);
-        S = self.model.variable(1, nApp);
-        E_l1 = self.model.variable(1, nApp);
-        
-        self.model.subject_to(T >= 0)
-        self.model.subject_to(self.model.bounded(0, S, maxCore))
-        self.model.subject_to(E_l1 >= 0)
-    
-        sSum = 0
-        obj = 0;
-        for i in range(nApp):
-            sSum += S[0, i]
-            # obj+=E_l1[0,i]
-            obj += (T[0, i] / C[i] - 1 / tgt[i]) ** 2
-        
-        self.model.subject_to(sSum <= maxCore)
-    
-        for i in range(nApp):
-            # optCTRL.addCons(T[i] <= S[i] / e[i])
-            # optCTRL.addCons(T[i] <= C[i] / e[i])
-            # optCTRL.addCons(T[i] >= S[i] / e[i] - C[i] / e[i] * D[i])
-            # optCTRL.addCons(T[i] >= C[i] / e[i] - C[i] / e[i] * (1 - D[i]))
-            # optCTRL.addCons(E_l1[i] >= ((C[i]/T[i])-tgt[i]))
-            # optCTRL.addCons(E_l1[i] >= -((C[i]/T[i])-tgt[i]))
-            self.model.subject_to(T[0, i] == casadi.fmin(S[0, i] / e[i], C[i] / e[i]))
+        if(np.sum(C)>0):
+            self.model = casadi.Opti() 
+            nApp = len(tgt)
             
-        # self.model.subject_to((E_l1[0,i]+tgt[i])>=((C[i]/T[0,i])))
-        # self.model.subject_to((E_l1[0,i]-tgt[i])>=-((C[i]/T[0,i])))
-    
-        self.model.minimize(obj)    
-        optionsIPOPT = {'print_time':False, 'ipopt':{'print_level':0}}
-        # self.model.solver('osqp',{'print_time':False,'error_on_fail':False})
-        self.model.solver('ipopt', optionsIPOPT) 
+            T = self.model.variable(1, nApp);
+            S = self.model.variable(1, nApp);
+            E_l1 = self.model.variable(1, nApp);
+            
+            self.model.subject_to(T >= 0)
+            self.model.subject_to(self.model.bounded(0, S, maxCore))
+            self.model.subject_to(E_l1 >= 0)
         
-        sol = self.model.solve()
-        if(nApp==1):
-            return sol.value(S)
+            sSum = 0
+            obj = 0;
+            for i in range(nApp):
+                sSum += S[0, i]
+                # obj+=E_l1[0,i]
+                obj += (T[0, i] / C[i] - 1 / tgt[i]) ** 2
+            
+            self.model.subject_to(sSum <= maxCore)
+        
+            for i in range(nApp):
+                # optCTRL.addCons(T[i] <= S[i] / e[i])
+                # optCTRL.addCons(T[i] <= C[i] / e[i])
+                # optCTRL.addCons(T[i] >= S[i] / e[i] - C[i] / e[i] * D[i])
+                # optCTRL.addCons(T[i] >= C[i] / e[i] - C[i] / e[i] * (1 - D[i]))
+                # optCTRL.addCons(E_l1[i] >= ((C[i]/T[i])-tgt[i]))
+                # optCTRL.addCons(E_l1[i] >= -((C[i]/T[i])-tgt[i]))
+                self.model.subject_to(T[0, i] == casadi.fmin(S[0, i] / e[i], C[i] / e[i]))
+                
+            # self.model.subject_to((E_l1[0,i]+tgt[i])>=((C[i]/T[0,i])))
+            # self.model.subject_to((E_l1[0,i]-tgt[i])>=-((C[i]/T[0,i])))
+        
+            self.model.minimize(obj)    
+            optionsIPOPT = {'print_time':False, 'ipopt':{'print_level':0}}
+            # self.model.solver('osqp',{'print_time':False,'error_on_fail':False})
+            self.model.solver('ipopt', optionsIPOPT) 
+            
+            sol = self.model.solve()
+            if(nApp==1):
+                return sol.value(S)
+            else:
+                return sol.value(S).tolist()
         else:
-            return sol.value(S).tolist()
+            return 10**(-3)
         
         # optCTRL.optimize()
         # sol = optCTRL.getBestSol()

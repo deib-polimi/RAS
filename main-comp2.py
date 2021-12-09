@@ -90,8 +90,7 @@ c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=0.8, stime=stime, maxCores
 c11.setName("OPTCTRL")
                           
 
-runner = Runner(horizon, [c0, c1, c2, c5,
-                          c6, c7, c8, c9, c10, c11], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
+runner = Runner(horizon, [c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
 
 runAll(runner)
 
