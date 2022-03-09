@@ -6,7 +6,7 @@ from estimator import QNEstimaator
 
 class OPTCTRL(Controller):
     
-    esrimationWindow = 100;
+    esrimationWindow = 1;
     rtSamples = None
     cSamples = None
     userSamples = None
@@ -21,6 +21,7 @@ class OPTCTRL(Controller):
         self.cSamples = [[]]
         self.userSamples = [[]]
         self.maxCores = maxCores
+        self.Ik=0
     
     # def OPTController(self,e, tgt, C,maxCore):
     #     optCTRL = Model() 
@@ -77,7 +78,7 @@ class OPTCTRL(Controller):
                 # obj+=E_l1[0,i]
                 obj += (T[0, i] / C[i] - 1 / tgt[i]) ** 2
             
-            self.model.subject_to(sSum <= maxCore)
+           # self.model.subject_to(sSum <= maxCore)
         
             for i in range(nApp):
                 # optCTRL.addCons(T[i] <= S[i] / e[i])
@@ -110,16 +111,22 @@ class OPTCTRL(Controller):
     
     def addRtSample(self, rt, u, c):
         if(len(self.rtSamples) >= self.esrimationWindow):
+            # print("rolling",rt, u, c)
+            # print(self.cSamples)
             self.rtSamples = np.roll(self.rtSamples, [-1, 0], 0)
             self.cSamples = np.roll(self.cSamples, [-1, 0], 0)
             self.userSamples = np.roll(self.userSamples, [-1, 0], 0)
             
+            # print(self.cSamples)
             self.rtSamples[-1] = rt
             self.cSamples[-1] = c
             self.userSamples[-1] = u
+            
+            # print(self.cSamples[-1],c,np.round(c,5))
         else:
+            print("adding", rt, u, c)
             self.rtSamples.append(rt)
-            self.cSamples.append(c)
+            self.cSamples.append(list(map(float,c)))
             self.userSamples.append(u)
         
     def control(self, t):
@@ -128,7 +135,8 @@ class OPTCTRL(Controller):
         if(self.generator != None):
             users = self.generator.f(t + 1)    
         else:
-            users = int(self.monitoring.getUsers())
+            users = self.monitoring.getUsers()
+        
         cores = self.cores
         
         # legacy nel caso si usa il controllore per la singola app
@@ -136,19 +144,28 @@ class OPTCTRL(Controller):
             rt = [rt]
             users = [users]
             cores = [cores]
-            
-        self.addRtSample(rt, users, cores)
         
-        mRt = np.array(self.rtSamples).mean(axis=0)
-        mCores = np.array(self.cSamples).mean(axis=0)
-        mUsers = np.array(self.userSamples).mean(axis=0)
+        self.addRtSample(np.maximum(rt,[0]), users, cores)
+        
+        # mRt = np.array(self.rtSamples).mean(axis=0)
+        # mCores = np.array(self.cSamples).mean(axis=0)
+        # mUsers = np.array(self.userSamples).mean(axis=0)
         
         # i problemi di stima si possono parallelizzare
         for app in range(len(rt)):
-            self.stime[app] = self.estimator.estimate(mRt[app], mCores[app], mUsers[app])
-            
+            self.stime[app] = self.estimator.estimate(np.array(self.rtSamples), 
+                                                      np.array(self.cSamples),
+                                                      np.array(self.userSamples))
+        
         # risolvo il problema di controllo ottimo
-        self.cores = self.OPTController(self.stime, self.setpoint, users, self.maxCores)
+        if(t>0):
+            self.Ik+=rt[0]-self.setpoint[0]
+        
+        print(rt,users, cores)
+        if(t>self.esrimationWindow):
+            self.cores =max(self.OPTController(self.stime, self.setpoint, users, self.maxCores)+0.1*self.Ik,0.5)
+        else:
+            self.cores=users[0]
     
     def reset(self):
         super().reset()

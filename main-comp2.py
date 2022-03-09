@@ -25,19 +25,19 @@ def runAll(runner):
     g = SinGen(25, 30, 50)
     g.setName("SN1")
     runner.run(g)
-
+    
     g = SinGen(25, 60, 50)
     g.setName("SN2")
     runner.run(g)
-
+    
     g = StepGen(range(0, 100, 20), range(0, 150, 30))
     g.setName("SP1")
     runner.run(g)
-
-    g = StepGen([10, 50, 100], [10, 200, 10])
+    
+    g = StepGen([10, 50, 10], [10, 50, 10])
     g.setName("SP2")
     runner.run(g)
-
+    
     g = RampGen(2, 80)
     g.setName("RP1")
     runner.run(g)
@@ -46,13 +46,17 @@ def runAll(runner):
     g.setName("RP2")
     runner.run(g)
     
+    g=tweetterGen()
+    g.setName("twetter")
+    runner.run(g)
+    
 
 
 stime=0.2 # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
 appSLA = stime*3
-horizon = 100
-monitoringWindow = 5
-initCores = 30 #condizione iniziale che assicura un punto di partenza stabile per il sistema
+horizon = 493
+monitoringWindow = 10
+initCores = 1 #condizione iniziale che assicura un punto di partenza stabile per il sistema
 
 scaleXPeriod = 1
 OPTCTRLPeriod = 1
@@ -90,11 +94,13 @@ c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=0.8, stime=stime, maxCores
 c11.setName("OPTCTRL")
                           
 
-runner = Runner(horizon, [c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
+runner = Runner(horizon, [c0], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
+#runner = Runner(horizon, [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
+#runner = Runner(horizon, [c11], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
 
 runAll(runner)
 
 runner.log()
-runner.plot()
-
+#runner.plot()
+runner.exportData()
 

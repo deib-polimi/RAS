@@ -3,6 +3,7 @@ from controllers import *
 from runner import Runner
 from applications import Application1
 import numpy 
+import os
 
 def scaleXTune():
     for BC in numpy.arange(0.1, 10, 0.5):
@@ -24,31 +25,35 @@ def runAll(runner):
     g = SinGen(500, 700, 200)
     g.setName("SN1")
     runner.run(g)
-
-    g = SinGen(1000, 1000, 100)
-    g.setName("SN2")
-    runner.run(g)
+    #
+    # g = SinGen(1000, 1100, 100)
+    # g.setName("SN2")
+    # runner.run(g)
+    #
+    # g = StepGen(range(0, 1000, 100), range(0, 10000, 1000))
+    # g.setName("SP1")
+    # runner.run(g)
+    #
+    # g = StepGen([50, 800, 1000], [50, 5000, 50])
+    # g.setName("SP2")
+    # runner.run(g)
+    #
+    # g = RampGen(10, 800)
+    # g.setName("RP1")
+    # runner.run(g)
     
-    g = StepGen(range(0, 1000, 100), range(0, 10000, 1000))
-    g.setName("SP1")
-    runner.run(g)
+    # g = RampGen(20, 800)
+    # g.setName("RP2")
+    # runner.run(g)
     
-    g = StepGen([50, 800, 1000], [50, 5000, 50])
-    g.setName("SP2")
-    runner.run(g)
-    
-    g = RampGen(10, 800)
-    g.setName("RP1")
-    runner.run(g)
-    
-    g = RampGen(20, 800)
-    g.setName("RP2")
-    runner.run(g)
+    # g=tweetterGen()
+    # g.setName("twetter")
+    # runner.run(g)
     
 stime=0.2 # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
 appSLA = stime*3
-horizon = 1000
-monitoringWindow = 10
+horizon = 493
+monitoringWindow = 1
 initCores = 1 #condizione iniziale che assicura un punto di partenza stabile per il sistema
 
 scaleXPeriod = 1
@@ -79,17 +84,29 @@ c8.setName("TargetCR")
 c9 = TargetController(scaleXPeriod, initCores, cooldown=0)
 c9.setName("TargetFast")
 
-tuning = (7.4, 0.3)
+tuning = (10.4, 0.3)
 
-c10 = CTControllerScaleX(scaleXPeriod, initCores, tuning[0], tuning[1])
-c10.setName("ScaleX")
-c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=0.8, stime=stime, maxCores=10**6)
-c11.setName("OPTCTRL")
-                          
+setpoints=[0.7,0.75,0.85,0.90,0.95,0.99]
 
-runner = Runner(horizon, [c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11], monitoringWindow, Application1(appSLA))
 
-runAll(runner)
+for st in setpoints:
 
-runner.log()
-runner.plot()
+    c10 = CTControllerScaleX(scaleXPeriod, initCores, tuning[0], tuning[1],st=st)
+    c10.setName("ScaleX")
+    c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=st, stime=stime, maxCores=10**6)
+    c11.setName("OPTCTRL")
+                              
+    
+    #runner = Runner(horizon, [c0], monitoringWindow, Application1(appSLA))
+    #runner = Runner(horizon, [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10], monitoringWindow, Application1(appSLA))
+    #runner = Runner(horizon, [c10], monitoringWindow, Application1(appSLA))
+    runner = Runner(horizon, [c11], monitoringWindow, Application1(appSLA))
+    
+    runAll(runner)
+    
+    runner.log()
+    #runner.plot()
+    runner.exportData()
+    
+    os.rename('./experiments/matfile/OPTCTRL-SN1.mat', './experiments/matfile/OPTCTRL-SN1-%.2f.mat'%(st))
+    

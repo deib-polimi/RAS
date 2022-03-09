@@ -2,6 +2,8 @@ from generators import Generator
 from applications import Application
 from numpy import array
 import matplotlib.pyplot as plt
+from scipy.io import savemat
+import os
 
 plt.rcParams.update({'font.size': 18})
 
@@ -17,7 +19,7 @@ class Simulation:
 
     def run(self):
         for t in range(0, self.horizon):
-            #print(t)
+            print(t)
             users = self.generator.tick(t)
             rt = self.app.setRT(users)
             self.monitoring.tick(t, rt, users, self.app.cores)
@@ -104,3 +106,14 @@ class Simulation:
         if not isinstance(aviolations, list):
             aviolations = [aviolations]
         return sum(aviolations)
+    
+    def exportData(self,outDir="experiments/matfile"):
+        
+        os.makedirs(outDir, exist_ok=True)
+        
+        arts = array(self.monitoring.getAllRTs())
+        acores = array(self.monitoring.getAllCores())
+        aviolations = self.monitoring.getViolations()
+        ausers = self.monitoring.getAllUsers()
+        savemat("%s/%s.mat"%(outDir,self.name), {"rts":arts,"cores":acores,"ausers":ausers,"sla":self.monitoring.sla})
+        

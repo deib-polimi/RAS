@@ -17,7 +17,7 @@ class Runner:
         self.name = name
 
     def run(self, gen: Generator):
-        #print("*********************   %s   ********************\n" % (gen,))
+        print("*********************   %s   ********************\n" % (gen,))
         for ct in self.controllers:
             ct.setSLA(self.sla)
             if self.genMonitoring:
@@ -27,8 +27,13 @@ class Runner:
             ct.setMonitoring(m)
             ct.setGenerator(gen)
             a = self.app
+            
+            #mi serve per far partire i controllori con un punto iniziale feasible
+            #if(not isinstance(ct, StaticController)):
+            ct.init_cores=gen.tick(0)
+            self.app.cores=gen.tick(0)
+            
             s = Simulation(self.horizon, a, gen, m, ct)
-            # print(ct)
             s.run()
             self.simulations.append(s)
             ct.reset()
@@ -53,3 +58,7 @@ class Runner:
     def getTotalViolations(self):
         print([s.getTotalViolations() for s in self.simulations])
         return sum([s.getTotalViolations() for s in self.simulations])
+    
+    def exportData(self):
+        for s in self.simulations:
+            s.exportData()
