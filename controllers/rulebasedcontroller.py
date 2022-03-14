@@ -29,7 +29,9 @@ class RBControllerWithCooldown(RBController):
         self.nextAction = -1
 
     def control(self, t):
+        print("cores", self.cores)
         if t > self.nextAction:
+            print("action")
             cores = self.cores
             super().control(t)
             if cores != self.cores:
