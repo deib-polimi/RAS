@@ -9,7 +9,6 @@ from scipy.stats import truncnorm
 import numpy as np
 import uuid
 import matplotlib.pyplot as plt
-from _curses import A_VERTICAL
 if __name__ == "__main__":
     from application import Application
 else:
