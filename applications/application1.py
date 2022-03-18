@@ -1,5 +1,6 @@
 if __name__ == "__main__":
     from application import Application
+    from matplotlib import pyplot as plt
 else:
     from .application import Application
 
@@ -14,5 +15,12 @@ class Application1(Application):
 
 if __name__ == "__main__":
     app=Application1(sla=0.1)
-    for i in range(10):
-        print(app.__computeRT__(req=10))
+    rt=[]
+    app.cores=1
+    for i in range(10000):
+        rt.append(i/app.__computeRT__(req=i))
+        
+    plt.figure()
+    plt.plot(rt)
+    plt.show()
+    
