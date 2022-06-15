@@ -13,9 +13,6 @@ from scipy.stats import truncnorm
 import simpy
 
 import matplotlib.pyplot as plt
-import numpy as np
-
-from butools.ph import *
 
 if __name__ == "__main__":
     from application import Application

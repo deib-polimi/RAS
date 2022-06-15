@@ -11,23 +11,30 @@ class QNEstimaator():
     def estimate(self,rt,s,c):
         self.model = casadi.Opti()
         
+        # print("rt",rt)
+        # print("server",s)
+        # print("client",c)
+        
+        
         e = self.model.variable(1,1);
-        er_l1 = self.model.variable(1,len(rt));
+
+        er_l1 = self.model.variable(1,rt.shape[0]);
+
         
         self.model.subject_to(e>=0)
         self.model.subject_to(er_l1>=0)
         
-        obj=0
-        for i in range(len(rt)):
+        for i in range(rt.shape[0]):
+
             if(c[i]<s[i]):
                 self.model.subject_to(er_l1[0,i] >= rt[i]-e)
                 self.model.subject_to(er_l1[0,i] >= -rt[i]+e)
             else:
                 self.model.subject_to(er_l1[0,i] >= rt[i]-(c[i]/s[i])*e)
                 self.model.subject_to(er_l1[0,i] >= -rt[i]+(c[i]/s[i])*e)
-            obj+=er_l1[0,i]
         
-        self.model.minimize(obj)    
+        self.model.minimize(casadi.sum2(er_l1))    
+
         optionsIPOPT={'print_time':False,'ipopt':{'print_level':0}}
         self.model.solver('ipopt',optionsIPOPT) 
         

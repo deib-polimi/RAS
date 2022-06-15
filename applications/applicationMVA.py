@@ -98,9 +98,12 @@ class ApplicationMVA(Application):
         self.readModel()
         self.updateNUsers(int(req))
         self.updateNServers(int(np.ceil(self.cores)))
-        self.updateStime(self.stime)
+        if(req>self.cores):
+            self.updateStime(self.stime*np.ceil(self.cores)/self.cores)
+        else:
+            self.updateStime(self.stime)
         self.writeJMVAModel()
         self.computeMVART()
         self.readModel()
-        print(req,int(np.ceil(self.cores)),float(self.getRT()))
+        print(req,self.cores,int(np.ceil(self.cores)),float(self.getRT()))
         return float(self.getRT())

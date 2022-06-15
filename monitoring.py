@@ -9,12 +9,12 @@ class Monitoring:
         self.window = window
         self.time = []
         self.sla = sla
+    
 
     def tick(self, t, rt, users, cores):
         if len(self.rts) == self.window:
             del self.rts[0]
             del self.users[0]
-
 
         self.time.append(t)
         self.rts.append(rt)

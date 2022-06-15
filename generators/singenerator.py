@@ -10,6 +10,7 @@ class SinGen(Generator):
         self.period = period / (2*math.pi)
 
     def f(self, x):
+        print(x)
         return math.sin(x/self.period)*self.mod+self.shift
 
     def __str__(self):

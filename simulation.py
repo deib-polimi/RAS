@@ -2,6 +2,8 @@ from generators import Generator
 from applications import Application
 from numpy import array
 import matplotlib.pyplot as plt
+from scipy.io import savemat
+import os
 
 plt.rcParams.update({'font.size': 18})
 
@@ -66,7 +68,10 @@ class Simulation:
             ax1.set_xlabel("time [s]")
             ax1.plot(rts, 'g-', linewidth=2)
             ax2 = ax1.twinx()
-            ax2.plot([self.app.sla] * len(rts),
+
+            sla = self.app.sla[i] if isinstance(self.app.sla, list) else self.app.sla
+            ax2.plot([sla] * len(rts),
+
                     'r--', linewidth=2)
             ax2.set_ylabel('RT [s]')
             m1, M1 = ax1.get_ylim()
@@ -98,3 +103,20 @@ class Simulation:
         plt.savefig("experiments/%s-workload.pdf" % (self.name,))
         plt.close()
         '''
+    
+    def getTotalViolations(self):
+        aviolations = self.monitoring.getViolations()
+        if not isinstance(aviolations, list):
+            aviolations = [aviolations]
+        return sum(aviolations)
+    
+    def exportData(self,outDir="experiments/matfile"):
+        
+        os.makedirs(outDir, exist_ok=True)
+        
+        arts = array(self.monitoring.getAllRTs())
+        acores = array(self.monitoring.getAllCores())
+        aviolations = self.monitoring.getViolations()
+        ausers = self.monitoring.getAllUsers()
+        savemat("%s/%s.mat"%(outDir,self.name), {"rts":arts,"cores":acores,"ausers":ausers,"sla":self.monitoring.sla})
+

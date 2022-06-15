@@ -2,6 +2,7 @@ from monitoring import Monitoring
 from simulation import Simulation
 from generators import Generator
 from applications import Application
+from controllers import StaticController
 import time
 import uuid
 
@@ -17,7 +18,7 @@ class Runner:
         self.name = name
 
     def run(self, gen: Generator):
-        #print("*********************   %s   ********************\n" % (gen,))
+        print("*********************   %s   ********************\n" % (gen,))
         for ct in self.controllers:
             ct.setSLA(self.sla)
             if self.genMonitoring:
@@ -27,8 +28,13 @@ class Runner:
             ct.setMonitoring(m)
             ct.setGenerator(gen)
             a = self.app
+            
+            #mi serve per far partire i controllori con un punto iniziale feasible
+            if(not isinstance(ct, StaticController)):
+                ct.init_cores=max(int(gen.tick(0)*0.01), 1)
+                self.app.cores=max(int(gen.tick(0)*0.01), 1)
+            
             s = Simulation(self.horizon, a, gen, m, ct)
-            # print(ct)
             s.run()
             self.simulations.append(s)
             ct.reset()
@@ -49,3 +55,11 @@ class Runner:
     def plot(self):
         for s in self.simulations:
             s.plot()
+
+    def getTotalViolations(self):
+        print([s.getTotalViolations() for s in self.simulations])
+        return sum([s.getTotalViolations() for s in self.simulations])
+    
+    def exportData(self):
+        for s in self.simulations:
+            s.exportData()
