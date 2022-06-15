@@ -27,22 +27,22 @@ app=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=initCores,isDetermini
 AppsCluster.sla=appsSLA
 
 
-c1 = CTControllerScaleXNode(1, initCores, maxCores, BC=3, DC=15)
+c1 = CTControllerScaleXNode(1, initCores, maxCores, BC=6, DC=100)
 c2 = OPTCTRL(monitoringWindow, init_cores=initCores, st=0.8, stime=[1/stimes[i] for i in range(appsCount)],maxCores=maxCores)
 c2.setName("OPTCTRL")
 c2.reset()
 
 
 
-runner = Runner(horizon, [c2, c1], monitoringWindow, app, lambda window, sla: MultiMonitoring([Monitoring(monitoringWindow, appsSLA[i]) for i in range(appsCount)]), name=name)
-g = MultiGenerator([SP1, RP1, SN1, SP2])
-runner.run(g)
+runner = Runner(horizon, [c1], monitoringWindow, app, lambda window, sla: MultiMonitoring([Monitoring(monitoringWindow, appsSLA[i]) for i in range(appsCount)]), name=name)
+#g = MultiGenerator([SP1, RP1, SN1, SP2])
+#runner.run(g)
 
 g = MultiGenerator([RP2, SN2, SP2, RP1])
 runner.run(g)
 
-g = MultiGenerator([SN1, SN2, RP1, RP2])
-runner.run(g)
+#g = MultiGenerator([SN1, SN2, RP1, RP2])
+#runner.run(g)
 
 runner.log()
 runner.plot()

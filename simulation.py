@@ -7,6 +7,7 @@ import os
 
 plt.rcParams.update({'font.size': 18})
 
+
 class Simulation:
     def __init__(self, horizon, app, generator, monitoring, controller):
         self.app = app
@@ -67,8 +68,10 @@ class Simulation:
             ax1.set_xlabel("time [s]")
             ax1.plot(rts, 'g-', linewidth=2)
             ax2 = ax1.twinx()
+
             sla = self.app.sla[i] if isinstance(self.app.sla, list) else self.app.sla
             ax2.plot([sla] * len(rts),
+
                     'r--', linewidth=2)
             ax2.set_ylabel('RT [s]')
             m1, M1 = ax1.get_ylim()
@@ -116,4 +119,4 @@ class Simulation:
         aviolations = self.monitoring.getViolations()
         ausers = self.monitoring.getAllUsers()
         savemat("%s/%s.mat"%(outDir,self.name), {"rts":arts,"cores":acores,"ausers":ausers,"sla":self.monitoring.sla})
-        
+

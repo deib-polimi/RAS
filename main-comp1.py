@@ -2,6 +2,7 @@ from generators import *
 from controllers import *
 from runner import Runner
 from applications import Application1
+
 import numpy 
 import os
 
@@ -64,6 +65,7 @@ scaleXPeriod = 1
 OPTCTRLPeriod = 1
 vmPeriod = 60*3
 ctnPeriod = 30
+
 
 c0 = StaticController(vmPeriod, 1)
 c0.setName("Static (1)")

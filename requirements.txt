@@ -3,3 +3,5 @@ matplotlib
 simpy
 scipy
 casadi
+redis
+tqdm

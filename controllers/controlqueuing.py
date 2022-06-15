@@ -10,7 +10,7 @@ class OPTCTRL(Controller):
     rtSamples = None
     cSamples = None
     userSamples = None
-    
+
     def __init__(self, period, init_cores, stime, maxCores=1000, st=0.8):
         super().__init__(period, init_cores, st)
         if(not isinstance(stime, list)):
@@ -146,7 +146,7 @@ class OPTCTRL(Controller):
             cores = [cores]
         
         self.addRtSample(np.maximum(rt,[0]), users, cores)
-        
+
         # mRt = np.array(self.rtSamples).mean(axis=0)
         # mCores = np.array(self.cSamples).mean(axis=0)
         # mUsers = np.array(self.userSamples).mean(axis=0)
@@ -164,6 +164,7 @@ class OPTCTRL(Controller):
         print(rt,users, cores)
         if(t>self.esrimationWindow):
             self.cores =max(self.OPTController(self.stime, self.setpoint, users, self.maxCores)+0.1*self.Ik,0.5)
+
         else:
             self.cores=users[0]
     
