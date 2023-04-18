@@ -23,7 +23,7 @@ class Monitoring:
         self.total_rt.append(total_rt)
         self.users.append(users)
         self.allRts.append(self.getRT())
-        self.allTotalRts.append(self.getAllTotalRTs())
+        self.allTotalRts.append(self.getTotalRT())
         self.allUsers.append(self.getUsers())
         self.allCores.append(cores)
 
@@ -47,7 +47,7 @@ class Monitoring:
         return self.allRts
 
     def getAllTotalRTs(self):
-        return self.total_rt
+        return self.allTotalRts
 
     def getAllUsers(self):
         return self.allUsers

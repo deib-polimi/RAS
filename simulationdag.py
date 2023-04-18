@@ -52,7 +52,7 @@ class SimulationWithDependeciesDAG:
     def plot(self):
         i = 0
         for monitoring, name in zip(self.monitorings, self.names):
-            arts = array(monitoring.getAllRTs())
+            arts = array(monitoring.getAllTotalRTs())
             acores = array(monitoring.getAllCores())
             aviolations = monitoring.getViolations()
             ausers = monitoring.getAllUsers()

@@ -17,10 +17,10 @@ from monitoring import Monitoring
 from node import Node
 from simulationdagvrs1 import SimulationWithDependeciesDAG
 
-stime = 0.6 #0.9*0.6/4
-appSLA = stime
+stime = 0.6
+appSLA = stime*0.9/4
 horizon = 1200
-monitoringWindow = 10
+monitoringWindow = 1
 initCores = 1
 period = 1
 st=1
@@ -31,22 +31,20 @@ c2 = CTControllerScaleX(period, initCores, st=st); c2.setName("ScaleX")
 c3 = CTControllerScaleX(period, initCores, st=st); c3.setName("ScaleX")
 c4 = CTControllerScaleX(period, initCores, st=st); c4.setName("ScaleX")
 c5 = CTControllerScaleX(period, initCores, st=st); c5.setName("ScaleX")
-c6 = CTControllerScaleX(period, initCores, st=st); c6.setName("ScaleX")
+c6 = CTControllerScaleX(period, initCores, st=st, BC=0.001, DC=0.02); c6.setName("ScaleX")
 
 # c0 = CTControllerScaleX(period, initCores); c0.setName("ScaleX")
 # c1 = CTControllerScaleX(period, initCores); c1.setName("ScaleX")
 # c2 = CTControllerScaleX(period, initCores); c2.setName("ScaleX")
 # c3 = CTControllerScaleX(period, initCores); c3.setName("ScaleX")
 
-#appSLA = 0.9*0.6/4
+apps = [Order(appSLA, init_cores=initCores), CartsCatalogue(appSLA, init_cores=initCores), Shipping(appSLA, init_cores=initCores),
+        User(appSLA, init_cores=initCores), Payment(appSLA, init_cores=initCores), CartsUtil(appSLA, init_cores=initCores),
+        CartsDelete(appSLA, init_cores=initCores)]
 
-# apps = [Order(appSLA, init_cores=initCores), CartsCatalogue(appSLA, init_cores=initCores), Shipping(appSLA, init_cores=initCores),
-#         User(appSLA, init_cores=initCores), Payment(appSLA, init_cores=initCores), CartsUtil(appSLA, init_cores=initCores),
-#         CartsDelete(appSLA, init_cores=initCores)]
-
-apps = [Order(appSLA, init_cores=initCores), CartsCatalogue(appSLA/3, init_cores=initCores), Shipping(appSLA/12, init_cores=initCores),
-        User(appSLA/12, init_cores=initCores), Payment(appSLA/12, init_cores=initCores), CartsUtil(appSLA/3, init_cores=initCores),
-        CartsDelete(appSLA/3, init_cores=initCores)]
+# apps = [Order(appSLA, init_cores=initCores), CartsCatalogue(appSLA/3, init_cores=initCores), Shipping(appSLA/12, init_cores=initCores),
+#         User(appSLA/12, init_cores=initCores), Payment(appSLA/12, init_cores=initCores), CartsUtil(appSLA/3, init_cores=initCores),
+#         CartsDelete(appSLA/3, init_cores=initCores)]
 
 # apps = [Order(0.3, init_cores=initCores), CartsCatalogue(0.07, init_cores=initCores), Shipping(0.07, init_cores=initCores),
 #         User(0.07, init_cores=initCores), Payment(0.07, init_cores=initCores), CartsUtil(0.07, init_cores=initCores),
@@ -62,11 +60,11 @@ mns = [Monitoring(monitoringWindow, appSLA), Monitoring(monitoringWindow, appSLA
 
 c0.setSLA(apps[0].sla); c1.setSLA(apps[1].sla); c2.setSLA(apps[2].sla); c3.setSLA(apps[3].sla);
 c4.setSLA(apps[4].sla); c5.setSLA(apps[5].sla); c6.setSLA(apps[6].sla)
-# f = c0.control
-# def f2(t):
-#     f(t)
-#     print(c0.rt)
-# c0.control = f2
+f = c6.control
+def f2(t):
+    f(t)
+    print(c6.rt, c6.cores)
+c6.control = f2
 c0.setMonitoring(mns[0]); c1.setMonitoring(mns[1]); c2.setMonitoring(mns[2]); c3.setMonitoring(mns[3]);
 c4.setMonitoring(mns[4]); c5.setMonitoring(mns[5]); c6.setMonitoring(mns[6])
 
