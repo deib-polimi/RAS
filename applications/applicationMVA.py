@@ -8,9 +8,10 @@ import numpy as np
 import pathlib
 import os
 
+
 class ApplicationMVA(Application):
     
-    modelPath="%s/JMT/tier.jmva"%(os.path.dirname(os.path.dirname(pathlib.Path(__file__).absolute())))
+    modelPath="%s/JMT/tier.jmva" % (os.path.dirname(os.path.dirname(pathlib.Path(__file__).absolute())))
     JMTPath="%s/JMT/JMT-singlejar-1.1.1.jar"%(os.path.dirname(os.path.dirname(pathlib.Path(__file__).absolute())))
     
     def __init__(self,sla=1.0, disturbance=0.0,stime=1.0,init_cores=1):
@@ -21,8 +22,6 @@ class ApplicationMVA(Application):
         self.tree=None
         self.reset()
 
-        
-    
     def getNUsers(self):
         self.isloaded()
         for classTag in self.model.iter('closedclass'):

@@ -8,6 +8,7 @@ import multiprocessing
 import time
 import uuid
 
+import numpy as np
 import redis
 from scipy.stats import truncnorm
 import simpy
@@ -157,14 +158,12 @@ class App():
             self.swThreads._capacity=newc
         elif(newc<self.swThreads.count):
             self.swThreads._capacity=newc
-            
 
-    
     def getSwThreads(self):
         return self.swThreads.capacity
 
+
 class AppsCluster(Application):
-    
     appNames=None
     srateAvg=None
     stdrateAvg=None
@@ -315,7 +314,7 @@ if __name__ == "__main__":
     Hrt=[]
     
     env=simpy.Environment()
-    cluster=AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=False,X0=X0,env=env)
+    cluster = AppsCluster(appNames=Names,srateAvg=srateAvg,initCores=cores,isDeterministic=False,X0=X0,env=env)
     
     plt.figure()
     for key,val in enumerate(cluster.cluster["apps"]):

@@ -9,21 +9,31 @@ plt.rcParams.update({'font.size': 18})
 
 
 class Simulation:
-    def __init__(self, horizon, app, generator, monitoring, controller):
+    # def __init__(self, horizon, app, generator, monitoring, controller):
+    #     self.app = app
+    #     self.generator = generator
+    #     self.controller = controller
+    #     self.horizon = horizon
+    #     self.monitoring = monitoring
+    #     self.violations = 0
+    #     self.name = "%s-%s" % (controller.name, generator.name)
+
+    def __init__(self, horizon, app, generator, monitoring, controller, nodeName): # WE ADDED NODE NAME TO MANAGE MULTIPLE APPLICATIONS
         self.app = app
         self.generator = generator
         self.controller = controller
         self.horizon = horizon
         self.monitoring = monitoring
         self.violations = 0
-        self.name = "%s-%s" % (controller.name, generator.name)
+        self.nodeName=nodeName
+        self.name = "%s-%s-%s" % (controller.name, generator.name, nodeName)
 
     def run(self):
         for t in range(0, self.horizon):
             print(t)
             users = self.generator.tick(t)
             rt = self.app.setRT(users)
-            self.monitoring.tick(t, rt, users, self.app.cores)
+            self.monitoring.tick(t, rt, users, self.app.cores) # data is stored here.
             cores = self.controller.tick(t)
             self.app.cores = cores
       
@@ -81,7 +91,7 @@ class Simulation:
             ax1.set_ylim([m, M])
             ax2.set_ylim([m, M])
             fig.tight_layout()
-            plt.savefig("experiments/%s-%d-rt.pdf" % (self.name, i))
+            plt.savefig("experiments/%s-%d-rt.pdf" % (self.name, i)) # THERE THE PHATH AND NAME OF THE FILE
             plt.close()
             i += 1
 

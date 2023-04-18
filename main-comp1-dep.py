@@ -1,0 +1,141 @@
+from generators import *
+from controllers import *
+from node import NodeTest
+from applications import Application1
+import numpy
+import os
+from runnerdep import RunnerWithDependences
+
+
+def scaleXTune():
+    for BC in numpy.arange(0.1, 10, 0.5):
+        for DC in numpy.arange(0.1, 10, 0.5):
+            c1 = CTControllerScaleX(scaleXPeriod, initCores, BC, DC)
+            c1.setName("ScaleX")
+            c2 = CTControllerScaleX(scaleXPeriod, initCores, BC, DC)
+            c2.setName("ScaleA")
+            nodetest1 = NodeTest(horizon, [c1], monitoringWindow,
+                                 Application1(appSLA), genMonitoring=None, name="run1", generator=None)
+            nodetest2 = NodeTest(horizon, [c1], monitoringWindow,
+                                 Application1(appSLA),
+                                 genMonitoring=None, name="run2", generator=None)
+            runnerdep = RunnerWithDependences([nodetest1, nodetest2])
+            runAll(runnerdep)
+            violations  = runnerdep.getTotalViolationsDep()
+            for v in violations:
+                if v < tuning[2]:
+                    tuning = (BC, DC, v)
+                print((BC, DC, v), tuning)
+
+    return tuning[0], tuning[1]
+
+
+def runAll(runner):
+    # g = SinGen(500, 700, 200)
+    # g.setName("SN1")
+    # runner.run(g)
+    #
+    # g = SinGen(1000, 1100, 100)
+    # g.setName("SN2")
+    # runner.run(g)
+    #
+    # g = StepGen(range(0, 1000, 100), range(0, 10000, 1000))
+    # g.setName("SP1")
+    # runner.run(g)
+    #
+    # g = StepGen([50, 800, 1000], [50, 5000, 50])
+    # g.setName("SP2")
+    # runner.run(g)
+    #
+    # g = RampGen(10, 800)
+    # g.setName("RP1")
+    # runner.run(g)
+    #
+    # g = RampGen(20, 800)
+    # g.setName("RP2")
+    # runner.run(g)
+    #
+    # g=tweetterGen()
+    # g.setName("twetter")
+    # runner.run(g)
+
+    # set generator name to the all nodes
+    nodeList=runner.nodelist
+    for i in range(0, len(nodeList)):
+        g = ibmGen()
+        g.setName("ibm")
+        nodeList[i].generators = g
+    runner.runDep() # Error here
+
+
+stime = 0.2  # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
+appSLA = stime * 3
+horizon = 1000
+monitoringWindow = 10
+initCores = 1  # condizione iniziale che assicura un punto di partenza stabile per il sistema
+
+scaleXPeriod = 1
+OPTCTRLPeriod = 1
+vmPeriod = 60 * 3
+ctnPeriod = 30
+
+c0 = StaticController(vmPeriod, 1)
+c0.setName("Static (1)")
+c1 = RBControllerWithCooldown(vmPeriod, initCores, step=1, cooldown=0)
+c1.setName("SimpleVM")
+c2 = RBControllerWithCooldown(ctnPeriod, initCores, step=1, cooldown=0)
+c2.setName("SimpleCR")
+c3 = RBControllerWithCooldown(vmPeriod, initCores, step=3, cooldown=0)
+c3.setName("Simple (VM) - +3")
+c4 = RBControllerWithCooldown(ctnPeriod, initCores, step=3, cooldown=0)
+c4.setName("Simple (CTN) - +3")
+c5 = StepController(vmPeriod, initCores, {
+    appSLA * 0.8: 0.9, appSLA * 0.9: 1, appSLA: 1.1, appSLA * 1.1: 1.2, appSLA * 1.201: 1.3}, cooldown=0)
+c5.setName("StepVM")
+c6 = StepController(ctnPeriod, initCores, {
+    appSLA * 0.8: 0.9, appSLA * 0.9: 1, appSLA: 1.1, appSLA * 1.1: 1.2, appSLA * 1.201: 1.3}, cooldown=0)
+c6.setName("StepCR")
+c7 = TargetController(vmPeriod, initCores, cooldown=0)
+c7.setName("TargetVM")
+c8 = TargetController(ctnPeriod, initCores, cooldown=0)
+c8.setName("TargetCR")
+c9 = TargetController(scaleXPeriod, initCores, cooldown=0)
+c9.setName("TargetFast")
+
+tuning = (8, 1)
+
+setpoints = [0.8]
+
+for st in setpoints:
+    c10 = CTControllerScaleX(scaleXPeriod, initCores, tuning[0], tuning[1], st=st)
+    c10.setName("ScaleX")
+    c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=st, stime=stime, maxCores=10 ** 6)
+    c11.setName("OPTCTRL")
+
+    # name used for logfile name
+    g = ibmGen()
+    g.setName("ibm")
+    nodetest1 = NodeTest(horizon, [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10], monitoringWindow, Application1(appSLA),
+                         genMonitoring = None, name="run1", generator=None, nodeName="A")
+    nodetest2 = NodeTest(horizon, [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10], monitoringWindow, Application1(appSLA),
+                        genMonitoring=None, name="run2", generator=None, nodeName="B")
+    nodeList = [nodetest1,nodetest2]
+
+   # CODIGO NAO AGRADAVEL
+    for i in range(0, len(nodeList)):
+        g = ibmGen()
+        g.setName("ibm")
+        nodeList[i].generator = g
+    runnerdep = RunnerWithDependences(nodeList) # Insert a list of Nodes
+    # runner = Runner(horizon, [c10], monitoringWindow, Application1(appSLA))
+    # runner = Runner(horizon, [c11], monitoringWindow, Application1(appSLA)
+
+
+    # ERRO FROM HERE
+    runAll(runnerdep)
+
+    runnerdep.logDep()
+    runnerdep.plotDep()
+    runnerdep.exportDataDep()
+
+    # os.rename('./experiments/matfile/OPTCTRL-SN1.mat', './experiments/matfile/OPTCTRL-SN1-%.2f.mat'%(st))

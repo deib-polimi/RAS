@@ -2,17 +2,16 @@ from generators import *
 from controllers import *
 from runner import Runner
 from applications import Application1
-
 import numpy 
 import os
+runnerlist=[]
 
-def scaleXTune():
+def scaleXTune(): # Has some issues on variables
     for BC in numpy.arange(0.1, 10, 0.5):
         for DC in numpy.arange(0.1, 10, 0.5):
             c1 = CTControllerScaleX(scaleXPeriod, initCores, BC, DC)
             c1.setName("ScaleX")
-            runner = Runner(horizon, [c1], monitoringWindow,  Application1(sla=appSLA,stime=stime,init_cores=initCores))
-
+            runner = Runner(horizon, [c1], monitoringWindow,  Application1(sla=appSLA, stime=stime, init_cores=initCores))
             runAll(runner)
 
             v = runner.getTotalViolations()
@@ -21,6 +20,7 @@ def scaleXTune():
             print((BC, DC, v), tuning)
             
     return tuning[0], tuning[1]
+
 
 def runAll(runner):
     # g = SinGen(500, 700, 200)
@@ -111,7 +111,7 @@ for st in setpoints:
     runAll(runner)
     
     runner.log()
-    #runner.plot()
+    runner.plot()
     runner.exportData()
     
     #os.rename('./experiments/matfile/OPTCTRL-SN1.mat', './experiments/matfile/OPTCTRL-SN1-%.2f.mat'%(st))

@@ -40,7 +40,6 @@ class CTControllerScaleXNode(Controller):
             
             
             #self.cores[i] = max(0.001, self.DCs[i]*e)
-          
 
         allocations = sum(self.cores)
         #print("desired cores", self.cores)

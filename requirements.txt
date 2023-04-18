@@ -1,7 +1,10 @@
-numpy
-matplotlib
-simpy
-scipy
-casadi
-redis
-tqdm
+numpy~=1.21.6
+matplotlib~=3.5.3
+simpy~=4.0.1
+scipy~=1.7.3
+casadi~=3.5.5
+redis~=4.4.2
+tqdm~=4.64.1
+matlab==0.1
+pgmpy~=0.1.21
+networkx~=2.6.3

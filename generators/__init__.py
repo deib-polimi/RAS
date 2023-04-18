@@ -5,3 +5,4 @@ from .multigenerator import MultiGenerator
 from .tweetergenerator import tweetterGen
 from .ibmgenerator import ibmGen
 from .generator import Generator
+from .zerogenerator import ZeroGen
