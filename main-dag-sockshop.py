@@ -2,13 +2,7 @@ import copy
 
 import networkx as nx
 
-from applications.cartsdelete import CartsDelete
-from applications.cartsutil import CartsUtil
-from applications.order import Order
-from applications.cartscatalogue import CartsCatalogue
-from applications.payment import Payment
-from applications.shipping import Shipping
-from applications.user import User
+from applications.sockshopmicroservice import *
 from dag import DAG
 from generators import *
 from controllers import *
@@ -18,19 +12,19 @@ from node import Node
 from simulationdagvrs1 import SimulationWithDependeciesDAG
 
 stime = 0.6
-appSLA = stime*0.9/4
+appSLA = stime
 horizon = 1200
 monitoringWindow = 1
-initCores = 1
+initCores = 0.5
 period = 1
-st=1
+st=0.25*0.9
 
-c0 = CTControllerScaleX(period, initCores, st=st); c0.setName("ScaleX")
-c1 = CTControllerScaleX(period, initCores, st=st); c1.setName("ScaleX")
-c2 = CTControllerScaleX(period, initCores, st=st); c2.setName("ScaleX")
-c3 = CTControllerScaleX(period, initCores, st=st); c3.setName("ScaleX")
-c4 = CTControllerScaleX(period, initCores, st=st); c4.setName("ScaleX")
-c5 = CTControllerScaleX(period, initCores, st=st); c5.setName("ScaleX")
+c0 = CTControllerScaleX(period, initCores, st=st, BC=0.001, DC=0.02); c0.setName("ScaleX")
+c1 = CTControllerScaleX(period, initCores, st=st, BC=0.0001, DC=0.002); c1.setName("ScaleX")
+c2 = CTControllerScaleX(period, initCores, st=st, BC=0.0001, DC=0.002); c2.setName("ScaleX")
+c3 = CTControllerScaleX(period, initCores, st=st, BC=0.0001, DC=0.002); c3.setName("ScaleX")
+c4 = CTControllerScaleX(period, initCores, st=st, BC=0.0001, DC=0.002); c4.setName("ScaleX")
+c5 = CTControllerScaleX(period, initCores, st=st, BC=0.001, DC=0.02); c5.setName("ScaleX")
 c6 = CTControllerScaleX(period, initCores, st=st, BC=0.001, DC=0.02); c6.setName("ScaleX")
 
 # c0 = CTControllerScaleX(period, initCores); c0.setName("ScaleX")
@@ -60,11 +54,11 @@ mns = [Monitoring(monitoringWindow, appSLA), Monitoring(monitoringWindow, appSLA
 
 c0.setSLA(apps[0].sla); c1.setSLA(apps[1].sla); c2.setSLA(apps[2].sla); c3.setSLA(apps[3].sla);
 c4.setSLA(apps[4].sla); c5.setSLA(apps[5].sla); c6.setSLA(apps[6].sla)
-f = c6.control
+f = c4.control
 def f2(t):
     f(t)
-    print(c6.rt, c6.cores)
-c6.control = f2
+    print(c4.rt, c4.cores)
+c4.control = f2
 c0.setMonitoring(mns[0]); c1.setMonitoring(mns[1]); c2.setMonitoring(mns[2]); c3.setMonitoring(mns[3]);
 c4.setMonitoring(mns[4]); c5.setMonitoring(mns[5]); c6.setMonitoring(mns[6])
 
