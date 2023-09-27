@@ -1,5 +1,5 @@
 class Monitoring:
-    def __init__(self, window, sla, reducer=lambda x: sum(x)/len(x)):
+    def __init__(self, window, sla, local_sla=0.0, reducer=lambda x: sum(x)/len(x)):
         self.allRts = []
         self.allTotalRts = []
         self.allUsers = []
@@ -11,6 +11,7 @@ class Monitoring:
         self.window = window
         self.time = []
         self.sla = sla
+        self.local_sla = local_sla
 
     def tick(self, t, rt, total_rt, users, cores):
         if len(self.rts) == self.window:
@@ -28,6 +29,7 @@ class Monitoring:
         self.allCores.append(cores)
 
 
+
     def getUsers(self):
         return self.reducer(self.users)
 
@@ -37,11 +39,18 @@ class Monitoring:
     def getTotalRT(self):
         return self.reducer(self.total_rt)
 
-    def getViolations(self):
-        return sum([1 if rt > self.sla else 0 for rt in self.allRts])
+    def getViolations(self): # TODO (DONE) Number of violations per Function
+        return sum([1 if rt > self.local_sla else 0 for rt in self.allRts])
+
+    def getNViolations(self): #TODO New for test
+        return sum([0 if rt > self.local_sla else 1 for rt in self.allRts])
+
 
     def getTotalViolations(self): # check considering totalRT TODO New
-        return sum([1 if rt > self.sla else 0 for rt in self.allTotalRts])
+        for rt in self.allTotalRts:
+            print(self.local_sla , rt)
+        return sum([1 if rt > self.local_sla else 0 for rt in self.allTotalRts])
+
 
     def getAllRTs(self):
         return self.allRts

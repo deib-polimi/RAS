@@ -20,6 +20,7 @@ class Application1Normalized(Application1):
 
     def norm(self, x):
         return (x - self.min)/(self.max - self.min)
+
     
     def __computeRT__(self, req):
        rt = super().__computeRT__(req)

@@ -21,7 +21,7 @@ class CTControllerScaleXNode(Controller):
 
     def control(self, t):
         #print(self.DCs)
-        rts = self.monitoring.getRT()
+        rts = self.monitoring.getRT()  # getTotalRT()
         for i in range(self.N):
             if(np.isnan(rts[i])):
                 raise ValueError(self.cores,t)

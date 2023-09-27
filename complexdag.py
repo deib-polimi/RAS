@@ -2,6 +2,9 @@ import copy
 import csv
 from collections import defaultdict
 import networkx as nx
+from scipy.io import savemat
+import os
+import pygraphviz
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -33,7 +36,7 @@ def inv_mil(number):
     return number/1000
 
 
-class DAG:
+class ComplexDAG:
     def __init__(self, dag, startNodename):
         self.dag = dag
         self.startNodeName = startNodename
@@ -136,6 +139,19 @@ class DAG:
             weight = self.getNode(nodeName).app.weight
         return weight
 
+    def updateUsersDAG(self, startNodeName, t): # start is
+        node = self.dag.nodes[startNodeName]['node']
+        app, gen = node.app, node.generator
+        # currentusersapp=app.numberusers # first is zero
+        newusers = int(gen.tick(t))
+        users_app = app.users + newusers
+        app.users = users_app
+        app.setRT(users_app)  # Set Local RT
+        node.total_rt = app.RT
+        childrenList = self.get_children(startNodeName)
+        # self.updateUsersList(childrenList, newusers, t)
+        self.updateUsersListForCycles(startNodeName,  childrenList , t)
+
     # called after users updated, only for cycles
     def updateUsersListForCycles(self, father, children,t):
         if len(children) == 0:
@@ -144,21 +160,21 @@ class DAG:
             childNode = self.dag.nodes[child]['node']
             app, gen = childNode.app, childNode.generator
             childNewusers = int(gen.tick(t))
-            fatherUsers = self.getNode(father).app.users
+            fatherUsers=self.getNode(father).app.users
             times = self.getEdgeValue(father, childNode.name, 'times')
             # we consider the last users generated in father and local child new users
             ti = 1 if (times < 1 or None) else times
-            fathers = childNode.fathers
+            fathers=childNode.fathers
             previousFatherUsers = 0
 
             if father in fathers:
-                previousFatherUsers = fathers[father]
-                fathers[father] = fatherUsers
+                    previousFatherUsers = fathers[father]
+                    fathers[father] = fatherUsers
             else:
-                fathers.update({father: fatherUsers})
+                    fathers.update({father: fatherUsers})
 
             # remove the previous added requests from father and add the updated ones
-            total_new_users = app.users + fatherUsers * ti + childNewusers - previousFatherUsers
+            total_new_users = app.users + fatherUsers * ti + childNewusers-previousFatherUsers
             app.users = total_new_users
             new_rt = childNode.app.getRT(total_new_users)
             app.RT = new_rt  # Set Local RT
@@ -180,16 +196,7 @@ class DAG:
         for node in dagList:
             self.dag.nodes[node.name]['node'].subtotal_weight=self.dag.nodes[node.name]['node'].app.weight
     # Only simple DAG was considered and set Local (simple) RT
-    def updateUsersDAG(self, startNodeName, t): # start is
-        node = self.dag.nodes[startNodeName]['node']
-        app, gen = node.app, node.generator
-        newusers = int(gen.tick(t))
-        users_app = app.users + newusers
-        app.users = users_app
-        app.setRT(users_app)  # Set Local RT
-        node.total_rt = app.RT
-        childrenList = self.get_children(startNodeName)
-        self.updateUsersListForCycles(startNodeName, childrenList, t)
+
 
     def setCores(self, startNodeName, t):
         listDAG=self.toList(startNodeName)
@@ -201,6 +208,7 @@ class DAG:
             mo.tick(t, app.RT, total_rt, app.users, app.cores)  # TODO: add local RT
             cores_app = cont.tick(t)
             app.cores = cores_app
+            # print('T-', t, '/RT', app.RT, '/TRT', total_rt, '/U', app.users, '/C', app.cores)
 
     def getControllers(self):
         controllers=[]
@@ -230,20 +238,6 @@ class DAG:
             children.append(edge[1])
         return children
 
-    def get_nodes_with_children_no_grandChildren(self, dag):
-        nodes_with_no_grand_children = set()
-        for node in dag.nodes():
-            if dag.out_degree(node) == 0:
-                continue
-            all_children_have_no_children = True
-            for child in dag.successors(node):
-                if dag.out_degree(child) > 0:
-                    all_children_have_no_children = False
-                    break
-            if all_children_have_no_children:
-                nodes_with_no_grand_children.add(node)
-        return nodes_with_no_grand_children
-
     def getTotalNodeRT(self,  rootNodeName):
         totalRT=0
         #for nodeName in list:
@@ -270,6 +264,8 @@ class DAG:
         visited_nodes = []
         while len(cloned_dag) > 1:
             nodes_names_without_grand_child = self.get_nodes_with_children_no_grandChildren(cloned_dag)
+            # for nodea in nodes_names_without_grand_child:
+            #     print(nodea)
             for nodeName in nodes_names_without_grand_child:
                 new_rt = self.getTotalNodeRT(nodeName)
                 self.getNode(nodeName).total_rt = new_rt  # set RT to our MAP
@@ -278,6 +274,21 @@ class DAG:
                 visited_nodes.append(children)
             unique_list = self.uniqueList(visited_nodes)
             cloned_dag.remove_nodes_from(unique_list)
+
+
+    def get_nodes_with_children_no_grandChildren(self, dag):
+        nodes_with_no_grand_children = set()
+        for node in dag.nodes():
+            if dag.out_degree(node) == 0:
+                continue
+            all_children_have_no_children = True
+            for child in dag.successors(node):
+                if dag.out_degree(child) > 0:
+                    all_children_have_no_children = False
+                    break
+            if all_children_have_no_children:
+                nodes_with_no_grand_children.add(node)
+        return nodes_with_no_grand_children
     def setAllWeights(self):
         cloned_dag = copy.deepcopy(self.dag)
         visited_nodes = []
@@ -293,12 +304,19 @@ class DAG:
             cloned_dag.remove_nodes_from(unique_list)
 
     def setST(self, alfa):
+        # max = 0
         self.setAllWeights()
         for node in self.dag:
             new_node = self.dag.nodes[node]['node']
+            # newst= new_node.app.sla*alfa*new_node.subtotal_weight/new_node.total_weight
             newst = alfa * new_node.app.weight / new_node.total_weight
+            # print(new_node.name, "- weight[%.3f]- totalweight[%.3f]", (new_node.subtotal_weight, new_node.total_weight))
+            # max = new_node.subtotal_weight if max <new_node.subtotal_weight else max
             new_node.controller.setST(newst)
+        # print(max)
 
+    # Given a sync value, return the list of nodes that are
+    # linked with that sync value from a given start node
     def get_children_nodes(self, start_node, edge_value): # TODO (DONE)
         children_nodes = []
         # Check all outgoing edges of the start node
@@ -429,13 +447,13 @@ class DAG:
             self.deviationSlaViolations.update({nodeName: node.monitoring.getTotalViolations()})
 
             self.avgSlaViolations.update({nodeName: node.monitoring.getTotalViolations()})
-
+            # print(nodeName, node.local_sla, node.total_rt)
     # For DAG visualization only
     def updateForVisualization(self, start):  # start is the root of the MAP
         nodeNameList=self.uniqueList(getAllFullPaths(self.dag, start))
         for nodeName in nodeNameList:
             self.dag.nodes[nodeName]['users'] = self.dag.nodes[nodeName]['node'].app.users
-            self.dag.nodes[nodeName]['st'] = round(to_mil(self.dag.nodes[nodeName]['node'].controller.st), 1)
+            self.dag.nodes[nodeName]['st'] = round(to_mil(self.dag.nodes[nodeName]['node'].controller.st), 2)
             self.dag.nodes[nodeName]['rt'] = self.AvgTotalRTs[nodeName]     # get from dictionary
             self.dag.nodes[nodeName]['lrt'] = self.AvgLocalRTs[nodeName]  # get from dictionary
             self.dag.nodes[nodeName]['rt_deviation'] = self.deviationTotalRTs[nodeName]  # get from dictionary
@@ -445,42 +463,29 @@ class DAG:
             self.dag.nodes[nodeName]['app'] = 'f'
 
     def print_dag(self, node_content=None, sync='sync', times='times', show_sync=True, show_times=True,
-                      pos=None, seed_value = 523, label=''):
-            # actualDirectCalledNodes = ['Ord']
-            # entrypoint_nodes = ['Ord', 'Del', 'Use', 'Cat','Uti']
-            # nodeList=['Ord', 'Del', 'Cat']
-            # edgeList= [('Ord','Del'), ('Ord','Cat')]
-
-            actualDirectCalledNodes = ['Sch', 'Prf']
-            entrypoint_nodes = ['Sch', 'Prf']
-
-
-            fontsize = 8
-            dagcolor = 'black'
-
-
+                  pos=None, seed_value=42, label=''):
+            actualDirectCalledNodes=['f1']
+            entrypoint_nodes = ['f1','f2', 'f11','f9', 'f14','f24']
+            fontsize=8
+            dagcolor='black'
             # seed = seed_value,
             if pos is None:
-                pos = nx.spring_layout(self.dag, seed=seed_value, scale=2)
+             pos = nx.spring_layout(self.dag, scale=2)
 
-            # nx.kamada_kawai_layout(self.dag)
+            #nx.kamada_kawai_layout(self.dag)
             # Set figure size and margins
             fig, ax = plt.subplots(figsize=(10, 8))
-            fig.subplots_adjust(left=0.065, right=1, top=1, bottom=0.01)
+            fig.subplots_adjust(left=0.001, right=1, top=1, bottom=0.01)
             node_labels = {node: node for node in self.dag.nodes}
             # Draw nodes with labels and attribute values
             if node_content is not None:
                 node_labels = {node: f"{node} ({attrs[node_content]})" for node, attrs in self.dag.nodes(data=True)}
-            nx.draw_networkx_labels(self.dag, pos, labels=node_labels, font_size=9, font_weight='10',
-                                    font_color=dagcolor)
-            nx.draw_networkx_nodes(self.dag, pos, node_color='none', edgecolors=dagcolor, node_size=5000)
-            self.selectNode(entrypoint_nodes, pos, edgecolors=dagcolor, node_color='none', node_size=5000, linewidths=3)
+            nx.draw_networkx_labels(self.dag, pos, labels=node_labels, font_size=6, font_weight='10',
+                                        font_color=dagcolor)
+            nx.draw_networkx_nodes(self.dag, pos, node_color='none', edgecolors=dagcolor, node_size=2000)
+            self.selectNode(entrypoint_nodes, pos, edgecolors=dagcolor, node_color='none', node_size=2000, linewidths=3)
             # Actual Direct called Nodes
-            self.selectNode(actualDirectCalledNodes, pos, edgecolors=dagcolor, node_color='none', node_size=5000,
-                            linewidths=3)
-
-            # self.selectChangedNodes(nodeList=nodeList, edgeList=edgeList, edgecolors='black',
-            #                    node_size=2000, linewidths=3)
+            self.selectNode(actualDirectCalledNodes, pos, edgecolors=dagcolor, node_color='none', node_size=2000, linewidths=3)
 
             # Draw edges with labels and attribute values
             edge_labels_sync_decorated = nx.get_edge_attributes(self.dag, sync)
@@ -493,22 +498,32 @@ class DAG:
                 edge_labels_sync_decorated[key] = f'({"s"}{edge_labels_sync[key]})'
                 edge_labels_times_decorated[key] = f'({"t"}{edge_labels_times[key]})'
                 edge_labels[key] = f'({"s"}{edge_labels_sync[key]},{"t"}{edge_labels_times[key]})'
-            nx.draw_networkx_edges(self.dag, pos, width=1, alpha=1, edge_color=dagcolor,
-                                   connectionstyle='arc3,rad=-0.02')
+            nx.draw_networkx_edges(self.dag, pos, width=1, alpha=1, edge_color=dagcolor, connectionstyle='arc3,rad=-0.02')
             if show_sync and show_times:
-                nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=edge_labels, font_size=fontsize,
-                                             font_color=dagcolor)
+                nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=edge_labels, font_size=fontsize, font_color=dagcolor)
             else:
                 if show_sync:
-                    nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=edge_labels_sync_decorated,
-                                                 font_size=fontsize, font_color=dagcolor)
+                    nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=edge_labels_sync_decorated, font_size=fontsize, font_color=dagcolor)
                 else:
                     if show_times:
-                        nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=edge_labels_times_decorated,
-                                                     font_size=fontsize,
-                                                     font_color=dagcolor)
+                        nx.draw_networkx_edge_labels(self.dag, pos, edge_labels=edge_labels_times_decorated, font_size=fontsize,
+                                              font_color=dagcolor)
+            # special_nodes = ["arf1", "arf9", "arf24", "arf11", "arf14"]
+            # edges = [("arf1", "f1"), ("arf9", "f9"), ("arf24", "f24"), ("arf11", "f11"), ("arf14", "f14")]
+            # newpos={
+            #     # special arrows
+            #     "arf1": (10, 10),
+            #     "arf9": (6, 3),
+            #     "arf24": (11, -1),
+            #     "arf11": (13, 6),
+            #     "arf14": (18, 4)
+            # }
+            # self.addNewNodes(special_nodes, edges)
+            # self.drawNewNodes(nodeList=special_nodes, edgeList=edges,pos=newpos, edgecolors=dagcolor, node_color='lightblue', node_size=2000,
+            #                 linewidths=3)
+
             ax = plt.gca()
-            ax.margins(0.075)
+            ax.margins(0.01)
             ax.axis('off')
             font1 = {'family': 'serif', 'color': dagcolor, 'size': 10}
             plt.title(node_content, fontdict=font1, loc='left')
@@ -516,29 +531,29 @@ class DAG:
 
             if node_content is None:
                 node_content = "simple"
-            plt.savefig("dag(%s)-%s.pdf" % (label, node_content))
+            plt.savefig("complex-dag(%s)-%s.pdf" % (label, node_content))
             plt.show()
             plt.close()
 
-    def selectNode(self, nodeList, pos=None, edgecolors='black', node_color='none', node_size=4000, linewidths=3):
-            nx.draw_networkx_nodes(self.dag, pos, nodelist=nodeList, node_color=node_color, edgecolors=edgecolors,
-                                   node_size=node_size, linewidths=linewidths)
+    def selectNode(self, nodeList, pos=None, edgecolors='black', node_color='none', node_size=2000, linewidths=3):
+        nx.draw_networkx_nodes(self.dag,  pos, nodelist=nodeList, node_color=node_color, edgecolors=edgecolors,
+                               node_size=node_size, linewidths=linewidths)
+
 
     def computeStatiscalTables(self, filename='AA'):
-
         functionNames = []
-        rts=[]
-        rtViolations=[]
-        coreAllocations=[]
+        rts = []
+        rtViolations = []
+        coreAllocations = []
         for node in self.toList(self.startNodeName):
-            name=node.name
+            name = node.name
             functionNames.append(name)
             # functionNames.append('NA')
 
-            rts.append(self.AvgTotalRTs[name]) # Mean of RT
+            rts.append(self.AvgTotalRTs[name])  # Mean of RT
             # rts.append(self.deviationTotalRTs[name])  # Deviation of RT
 
-            rtViolations.append(self.avgSlaViolations[name]) # % of RT violations
+            rtViolations.append(self.avgSlaViolations[name])  # % of RT violations
             # rtViolations.append(self.deviationSlaViolations[name])
 
             coreAllocations.append(self.avgCores[name])
@@ -547,10 +562,10 @@ class DAG:
             # rts.append(round(self.slaViolations[name]/len(self.totalRts[name])*100.0,1)) # % of RT
 
         # Specify the file path for the CSV file
-        csv_file_path = filename+".csv"
+        csv_file_path = filename + ".csv"
 
         # Combine the lists into a table format
-        table_data = zip(functionNames, rts,rtViolations, coreAllocations)
+        table_data = zip(functionNames, rts, rtViolations, coreAllocations)
 
         # Open the CSV file in write mode and specify the delimiter
         with open(csv_file_path, "w", newline="") as file:
@@ -563,139 +578,140 @@ class DAG:
             for row in table_data:
                 writer.writerow(row)
 
+
     def computeFinalTable(self, simulatorLabel, timeWindow, fil1, fil2, fil3, fil4, fil5, fil6, fil7, fil8, fil9, fil10):
+        with open(fil1, 'r') as f1, open(fil2, 'r') as f2, open(fil3, 'r') \
+                as f3, open(fil4, 'r') as f4, open(fil5, 'r') as f5, open(fil6, 'r') \
+                as f6, open(fil7, 'r') as f7, open(fil8, 'r') as f8, open(fil9, 'r') as f9, open(fil10, 'r') as f10:
+            reader1 = csv.reader(f1)
+            reader2 = csv.reader(f2)
+            reader3 = csv.reader(f3)
+            reader4 = csv.reader(f4)
+            reader5 = csv.reader(f5)
+            reader6 = csv.reader(f6)
+            reader7 = csv.reader(f7)
+            reader8 = csv.reader(f8)
+            reader9 = csv.reader(f9)
+            reader10 = csv.reader(f10)
 
-            with open(fil1, 'r') as f1, open(fil2, 'r') as f2, open(fil3, 'r') \
-                    as f3, open(fil4, 'r') as f4, open(fil5, 'r') as f5, open(fil6, 'r') \
-                    as f6, open(fil7, 'r') as f7, open(fil8, 'r') as f8, open(fil9, 'r') as f9, open(fil10, 'r') as f10:
-                reader1 = csv.reader(f1)
-                reader2 = csv.reader(f2)
-                reader3 = csv.reader(f3)
-                reader4 = csv.reader(f4)
-                reader5 = csv.reader(f5)
-                reader6 = csv.reader(f6)
-                reader7 = csv.reader(f7)
-                reader8 = csv.reader(f8)
-                reader9 = csv.reader(f9)
-                reader10 = csv.reader(f10)
+            # Skip header rows if present
+            next(reader1, None)
+            next(reader2, None)
+            next(reader3, None)
+            next(reader4, None)
+            next(reader5, None)
+            next(reader6, None)
+            next(reader7, None)
+            next(reader8, None)
+            next(reader9, None)
+            next(reader10, None)
 
-                # Skip header rows if present
-                next(reader1, None)
-                next(reader2, None)
-                next(reader3, None)
-                next(reader4, None)
-                next(reader5, None)
-                next(reader6, None)
-                next(reader7, None)
-                next(reader8, None)
-                next(reader9, None)
-                next(reader10, None)
+            # Read the file contents into lists
+            fil1 = list(reader1)
+            fil2 = list(reader2)
+            fil3 = list(reader3)
+            fil4 = list(reader4)
+            fil5 = list(reader5)
+            fil6 = list(reader6)
+            fil7 = list(reader7)
+            fil8 = list(reader8)
+            fil9 = list(reader9)
+            fil10 = list(reader10)
 
-                # Read the file contents into lists
-                fil1 = list(reader1)
-                fil2 = list(reader2)
-                fil3 = list(reader3)
-                fil4 = list(reader4)
-                fil5 = list(reader5)
-                fil6 = list(reader6)
-                fil7 = list(reader7)
-                fil8 = list(reader8)
-                fil9 = list(reader9)
-                fil10 = list(reader10)
+            rts = []
+            violations = []
+            cores = []
+            functionNames = []
 
-                rts = []
-                violations = []
-                cores = []
-                functionNames = []
+            for row_num, (row1, row2, row3, row4, row5, row6, row7, row8, row9, row10) in \
+                    enumerate(zip(fil1, fil2, fil3, fil4, fil5, fil6, fil7, fil8, fil9, fil10), start=2):
+                if row_num > 60:
+                    break
 
-                for row_num, (row1, row2, row3, row4, row5, row6, row7, row8, row9, row10) in \
-                        enumerate(zip(fil1, fil2, fil3, fil4, fil5, fil6, fil7, fil8, fil9, fil10), start=2):
-                    if row_num > 16:
-                        break
+                functionNames.append(row1[0])
+                functionNames.append("dev")
+                # Extract values from column 2 of each row
+                rt1 = float(row1[1])
+                rt2 = float(row2[1])
+                rt3 = float(row3[1])
+                rt4 = float(row4[1])
+                rt5 = float(row5[1])
+                rt6 = float(row6[1])
+                rt7 = float(row7[1])
+                rt8 = float(row8[1])
+                rt9 = float(row9[1])
+                rt10 = float(row10[1])
 
-                    functionNames.append(row1[0])
-                    functionNames.append("dev")
-                    # Extract values from column 2 of each row
-                    rt1 = float(row1[1])
-                    rt2 = float(row2[1])
-                    rt3 = float(row3[1])
-                    rt4 = float(row4[1])
-                    rt5 = float(row5[1])
-                    rt6 = float(row6[1])
-                    rt7 = float(row7[1])
-                    rt8 = float(row8[1])
-                    rt9 = float(row9[1])
-                    rt10 = float(row10[1])
+                vio1 = float(row1[2])
+                vio2 = float(row2[2])
+                vio3 = float(row3[2])
+                vio4 = float(row4[2])
+                vio5 = float(row5[2])
+                vio6 = float(row6[2])
+                vio7 = float(row7[2])
+                vio8 = float(row8[2])
+                vio9 = float(row9[2])
+                vio10 = float(row10[2])
 
-                    vio1 = float(row1[2])
-                    vio2 = float(row2[2])
-                    vio3 = float(row3[2])
-                    vio4 = float(row4[2])
-                    vio5 = float(row5[2])
-                    vio6 = float(row6[2])
-                    vio7 = float(row7[2])
-                    vio8 = float(row8[2])
-                    vio9 = float(row9[2])
-                    vio10 = float(row10[2])
+                cor1 = float(row1[3])
+                cor2 = float(row2[3])
+                cor3 = float(row3[3])
+                cor4 = float(row4[3])
+                cor5 = float(row5[3])
+                cor6 = float(row6[3])
+                cor7 = float(row7[3])
+                cor8 = float(row8[3])
+                cor9 = float(row9[3])
+                cor10 = float(row10[3])
 
-                    cor1 = float(row1[3])
-                    cor2 = float(row2[3])
-                    cor3 = float(row3[3])
-                    cor4 = float(row4[3])
-                    cor5 = float(row5[3])
-                    cor6 = float(row6[3])
-                    cor7 = float(row7[3])
-                    cor8 = float(row8[3])
-                    cor9 = float(row9[3])
-                    cor10 = float(row10[3])
+                rtsv = [rt1, rt2, rt3, rt4, rt5, rt6, rt7, rt8, rt9, rt10]
+                violationsv = [vio1, vio2, vio3, vio4, vio5, vio6, vio7, vio8, vio9, vio10]
+                corsv = [cor1, cor2, cor3, cor4, cor5, cor6, cor7, cor8, cor9, cor10]
+                # Calculate the sum of the values
 
-                    rtsv = [rt1, rt2, rt3, rt4, rt5, rt6, rt7, rt8, rt9, rt10]
-                    violationsv = [vio1, vio2, vio3, vio4, vio5, vio6, vio7, vio8, vio9, vio10]
-                    corsv = [cor1, cor2, cor3, cor4, cor5, cor6, cor7, cor8, cor9, cor10]
-                    # Calculate the sum of the values
+                rts.append(round(np.mean(rtsv) + 0.0, 1))
+                rts.append(round(np.std(rtsv) + 0.0, 1))
+                meanViolations = np.mean(violationsv) / timeWindow*100
+                deviationViolation = np.std(violationsv) / timeWindow*100
+                violations.append(round(meanViolations + 0.00001, 1))
+                violations.append(round(deviationViolation, 1))
 
-                    rts.append(round(np.mean(rtsv) + 0.0, 1))
-                    rts.append(round(np.std(rtsv) + 0.0, 1))
-                    meanViolations = np.mean(violationsv)/timeWindow*100
-                    deviationViolation=np.std(violationsv)/timeWindow*100
-                    print(round(deviationViolation, 4))
-                    violations.append(round(meanViolations + 0.00001, 1))
-                    violations.append(round(deviationViolation, 1))
+                cores.append(round(np.mean(corsv) + 0.0, 1))
+                cores.append(round(np.std(corsv) + 0.0, 1))
 
-                    cores.append(round(np.mean(corsv) + 0.0, 1))
-                    cores.append(round(np.std(corsv) + 0.0, 1))
+            csv_file_path = "experiments/%s-Final1.csv" % (simulatorLabel)
+            # functionNames = []
+            # for k in range(15):
+            #     functionNames.append(f'f{k}')
+            # Combine the lists into a table format
+            table_data = zip(functionNames, rts, violations, cores)
 
-                csv_file_path = "experiments/%s-Final1.csv" % (simulatorLabel)
-                # functionNames = []
-                # for k in range(15):
-                #     functionNames.append(f'f{k}')
-                # Combine the lists into a table format
-                table_data = zip(functionNames, rts, violations, cores)
+            # Open the CSV file in write mode and specify the delimiter
+            with open(csv_file_path, "w", newline="") as file:
+                writer = csv.writer(file, delimiter=",")
 
-                # Open the CSV file in write mode and specify the delimiter
-                with open(csv_file_path, "w", newline="") as file:
-                    writer = csv.writer(file, delimiter=",")
+                # Write the header row
+                writer.writerow(["Function", "RT", "Violations", "Cores"])
 
-                    # Write the header row
-                    writer.writerow(["Function", "RT", "Violations", "Cores"])
+                # Write each row of the table data to the CSV file
+                for row in table_data:
+                    writer.writerow(row)
 
-                    # Write each row of the table data to the CSV file
-                    for row in table_data:
-                        writer.writerow(row)
-
-                    # Print the row sum
+                # Print the row sum
 
         # Specify the paths to file1 and file2
+
+
     def computeResultTable(self, simulatorLebal='', timeWindow=1200.0):
-        file1 = "experiments/%s-1.csv"%(simulatorLebal)
-        file2 = "experiments/%s-2.csv"%(simulatorLebal)
-        file3 = "experiments/%s-3.csv"%(simulatorLebal)
-        file4 = "experiments/%s-4.csv"%(simulatorLebal)
-        file5 = "experiments/%s-5.csv"%(simulatorLebal)
-        file6 = "experiments/%s-6.csv"%(simulatorLebal)
-        file7 = "experiments/%s-7.csv"%(simulatorLebal)
-        file8 = "experiments/%s-8.csv"%(simulatorLebal)
-        file9 = "experiments/%s-9.csv"%(simulatorLebal)
-        file10 = "experiments/%s-10.csv"%(simulatorLebal)
+        file1 = "experiments/%s-1.csv" % (simulatorLebal)
+        file2 = "experiments/%s-2.csv" % (simulatorLebal)
+        file3 = "experiments/%s-3.csv" % (simulatorLebal)
+        file4 = "experiments/%s-4.csv" % (simulatorLebal)
+        file5 = "experiments/%s-5.csv" % (simulatorLebal)
+        file6 = "experiments/%s-6.csv" % (simulatorLebal)
+        file7 = "experiments/%s-7.csv" % (simulatorLebal)
+        file8 = "experiments/%s-8.csv" % (simulatorLebal)
+        file9 = "experiments/%s-9.csv" % (simulatorLebal)
+        file10 = "experiments/%s-10.csv" % (simulatorLebal)
         # Call the sum_and_print_values function
-        self.computeFinalTable(simulatorLebal,timeWindow,file1, file2, file3, file4, file5, file6, file7, file8, file9, file10)
+        self.computeFinalTable(simulatorLebal,timeWindow, file1, file2, file3, file4, file5, file6, file7, file8, file9, file10)

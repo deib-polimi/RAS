@@ -1,14 +1,7 @@
-import copy
 
 import networkx as nx
 
-from applications.cartsdelete import CartsDelete
-from applications.cartsutil import CartsUtil
-from applications.order import Order
-from applications.cartscatalogue import CartsCatalogue
-from applications.payment import Payment
-from applications.shipping import Shipping
-from applications.user import User
+from applications.sockshopmicroservice import *
 from dag import DAG
 from generators import *
 from controllers import *
@@ -108,7 +101,7 @@ simul.run()
 simul.plot()
 
 # MAP VISUALIZATION
-dag.updateDAGUsersRTForVisualization('Ord')
+dag.updateForVisualization('Ord')
 
 dag.print_dag('users')
 dag.print_dag('rt')

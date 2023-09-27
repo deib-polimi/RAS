@@ -68,7 +68,7 @@ simul.run()
 simul.plot()
 
 # MAP VISUALIZATION
-dag.updateDAGUsersRTForVisualization('A')
+dag.updateForVisualization('A')
 
 dag.print_dag('rt')
 

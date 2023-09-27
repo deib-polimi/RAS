@@ -1,5 +1,5 @@
-class Controller:
-    def __init__(self, period, init_cores, st=0.5):
+class ControllerDependency:
+    def __init__(self, period, init_cores, st):
         self.period = period
         self.init_cores = init_cores
         self.st = st
@@ -10,18 +10,15 @@ class Controller:
 
     def setSLA(self, sla):
         self.sla = sla
-        self.setpoint = sla*self.st  # *0.6  oly for Neptune real world
-        # print('SLA=',sla)
-
+        self.setpoint = sla * self.st
+        # print('st/SLA-',self.st,'/',sla)
 
     def setST(self, st):
         self.st = st
-        self.setpoint = self.sla*self.st # 0.6 oly for Neptune real world
-        # print('STController.ST-', self.st)
-
+        self.setpoint = self.sla * self.st
     def setMonitoring(self, monitoring):
         self.monitoring = monitoring
-    
+
     def setGenerator(self, generator):
         self.generator = generator
 
