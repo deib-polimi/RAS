@@ -4,10 +4,13 @@ MAX_SCALE_OUT_TIMES = 3
 MIN_CORES = 1
 
 class CTControllerScaleX(Controller):
-    def __init__(self, period, init_cores, BC=0.5, DC=0.95,st=0.8):
+    def __init__(self, period, init_cores, BC=0.5, DC=0.95,st=0.8, min_cores=1, max_cores=10**8):
         super().__init__(period, init_cores,st=st)
         self.BC = BC
         self.DC = DC
+        self.min_cores = min_cores
+        self.max_cores = max_cores
+
 
     def reset(self):
         super().reset()

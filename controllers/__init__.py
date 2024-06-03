@@ -7,5 +7,5 @@ from .targetcontroller import TargetController
 from .stepcontroller import StepController
 from .controltheoreticalmulti import CTControllerScaleXNode
 from .qnTransientController import qnTransient
-
+from .jointcontroller import JointController
 from .controller import Controller
