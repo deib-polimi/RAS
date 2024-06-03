@@ -1,4 +1,4 @@
-from .controller import OPTCTRL, CTControllerScaleX
+from controllers import OPTCTRL, CTControllerScaleX
 
 
 class JointController(OPTCTRL):
@@ -9,7 +9,8 @@ class JointController(OPTCTRL):
         self.qn_cores = 0
 
     def control(self, t):
-        if self.cont % 5 == 0:
+        #if self.cont % 1 == 0:
+        if(True):
             self.cont = 0
             super().control(t)
             self.qn_cores = self.cores
@@ -19,7 +20,18 @@ class JointController(OPTCTRL):
         self.scalex.control(t)
         self.cores = self.scalex.cores
         self.cont += 1
-    
+
+    def setMonitoring(self,monitoring):
+        super().setMonitoring(monitoring)
+        self.scalex.setMonitoring(self.monitoring)
+
+    def setSLA(self,sla):
+        super().setSLA(sla)
+        self.scalex.setSLA(sla)
+
+    def reset(self):
+        super().reset()
+        self.scalex.reset()
 
     def __str__(self):
         return super().__str__() + " BC: %.2f DC: %.2f " % (self.BC, self.DC)

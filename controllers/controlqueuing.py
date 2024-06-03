@@ -6,7 +6,7 @@ from estimator import QNEstimaator
 
 class OPTCTRL(Controller):
     
-    esrimationWindow = 1;
+    esrimationWindow = 30;
     rtSamples = None
     cSamples = None
     userSamples = None
@@ -164,7 +164,6 @@ class OPTCTRL(Controller):
         print(rt,users, cores)
         if(t>self.esrimationWindow):
             self.cores =max(self.OPTController(self.stime, self.setpoint, users, self.maxCores)+0.1*self.Ik,0.5)
-
         else:
             self.cores=users[0]
     

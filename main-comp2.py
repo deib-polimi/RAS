@@ -58,9 +58,9 @@ def runAll(runner):
     # g.setName("SN2")
     # runner.run(g)
     #
-    # g = StepGen(range(0, 1000, 100), range(0, 10000, 1000))
-    # g.setName("SP1")
-    # runner.run(g)
+    g = StepGen(range(0, 1000, 100), range(0, 10000, 1000))
+    g.setName("SP1")
+    runner.run(g)
     #
     # g = StepGen([50, 800, 1000], [50, 5000, 50])
     # g.setName("SP2")
@@ -78,15 +78,15 @@ def runAll(runner):
     # g.setName("twetter")
     # runner.run(g)
     
-    g=ibmGen()
-    g.setName("ibm")
-    runner.run(g)
+    # g=ibmGen()
+    # g.setName("ibm")
+    # runner.run(g)
     
 
 
 stime=0.02 # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
 appSLA = 0.6
-horizon = 1000
+horizon = 300
 monitoringWindow = 10
 initCores = 1 #condizione iniziale che assicura un punto di partenza stabile per il sistema
 
@@ -119,20 +119,25 @@ c9 = TargetController(scaleXPeriod, initCores, cooldown=0)
 c9.setName("TargetFast")
 
 tuning = (7.8, 3.3)
+setpoints=[0.8]
 
-c10 = CTControllerScaleX(scaleXPeriod, initCores, tuning[0], tuning[1])
-c10.setName("ScaleX")
-c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=0.8, stime=stime, maxCores=10**6)
-c11.setName("OPTCTRL")
+for st in setpoints:
+
+    c10 = CTControllerScaleX(scaleXPeriod, initCores, tuning[0], tuning[1])
+    c10.setName("ScaleX")
+    c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=0.8, stime=stime, maxCores=10**6)
+    c11.setName("OPTCTRL")
+    c12 = JointController(scaleXPeriod, initCores, stime,tuning[0], tuning[1], maxCores=10**6, st=st)
+    c12.setName("JOINTCTRL") 
                           
-
+setpoints=[0.8]
 #runner = Runner(horizon, [c0], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
-runner = Runner(horizon, [c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
+runner = Runner(horizon, [c12], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
 #runner = Runner(horizon, [c11], monitoringWindow, ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores))
 
 runAll(runner)
 
 runner.log()
-#runner.plot()
+runner.plot()
 runner.exportData()
 

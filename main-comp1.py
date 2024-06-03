@@ -47,13 +47,13 @@ def runAll(runner):
     # g.setName("RP2")
     # runner.run(g)
     #
-    # g=tweetterGen()
-    # g.setName("twetter")
-    # runner.run(g)
-    
-    g=ibmGen()
-    g.setName("ibm")
+    g=tweetterGen()
+    g.setName("twetter")
     runner.run(g)
+    
+    # g=ibmGen()
+    # g.setName("ibm")
+    # runner.run(g)
     
 stime=0.2 # average service time of the MVA application (this is required by both the MVA application and the OPTCTRL)
 appSLA = stime*3
@@ -105,7 +105,7 @@ for st in setpoints:
     c12.setName("JOINTCTRL")                          
     
     #runner = Runner(horizon, [c0], monitoringWindow, Application1(appSLA))
-    runner = Runner(horizon, [c10, c11, c12], monitoringWindow, Application1(appSLA))
+    runner = Runner(horizon, [c10,c11,c12], monitoringWindow, Application1(appSLA))
     #runner = Runner(horizon, [c10], monitoringWindow, Application1(appSLA))
     #runner = Runner(horizon, [c11], monitoringWindow, Application1(appSLA))
     
