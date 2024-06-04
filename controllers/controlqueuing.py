@@ -1,7 +1,7 @@
 from .controller import Controller
 import casadi
 import numpy as np
-from estimator import QNEstimaator
+from .estimator import QNEstimaator
 
 
 class OPTCTRL(Controller):
@@ -11,9 +11,9 @@ class OPTCTRL(Controller):
     cSamples = None
     userSamples = None
 
-    def __init__(self, period, init_cores, stime, maxCores=1000, st=0.8):
-        super().__init__(period, init_cores, st)
-        if(not isinstance(stime, list)):
+    def __init__(self, period, init_cores, stime, maxCores=1000, st=0.8, name=None):
+        super().__init__(period, init_cores, st, name=name)
+        if not isinstance(stime, list):
             self.stime = [stime]
         self.generator = None
         self.estimator = QNEstimaator()
@@ -23,6 +23,12 @@ class OPTCTRL(Controller):
         self.maxCores = maxCores
         self.Ik=0
     
+
+    def setServiceTime(self, stime):
+        if not isinstance(stime, list):
+            self.stime = [stime]
+        else:
+            self.stime = stime
     # def OPTController(self,e, tgt, C,maxCore):
     #     optCTRL = Model() 
     #     optCTRL.hideOutput()

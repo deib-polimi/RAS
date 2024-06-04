@@ -1,6 +1,6 @@
-To install and run (requires Python3)
+To install and run simulationstra p (requires Python3)
 
-- pip install -r requirements.txt
-- python main.py 
+- pip install -r simulator/requirements.txt
+- python -m simulator.main.<your main file without .py>
 
 Charts are generated into the 'experiments' folder.

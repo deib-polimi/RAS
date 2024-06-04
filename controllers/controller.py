@@ -1,10 +1,10 @@
 class Controller:
-    def __init__(self, period, init_cores, st=0.8):
+    def __init__(self, period, init_cores, st=0.8, name=None):
         self.period = period
         self.init_cores = init_cores
         self.st = st
-        self.name = type(self).__name__
-
+        self.name = name if name else type(self).__name__
+        
     def setName(self, name):
         self.name = name
 

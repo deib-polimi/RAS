@@ -6,8 +6,8 @@ MAX_SCALE_OUT_TIMES = 10000000
 MIN_CORES = 0.1
 
 class CTControllerScaleXNode(Controller):
-    def __init__(self, period, init_cores: list, max_cores, BCs, DCs):
-        super().__init__(period, init_cores)
+    def __init__(self, period, init_cores: list, max_cores, BCs, DCs, name=None):
+        super().__init__(period, init_cores, name=name)
         #print(init_cores)
         self.BCs = BCs
         self.DCs = DCs

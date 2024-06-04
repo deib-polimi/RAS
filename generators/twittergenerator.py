@@ -2,10 +2,10 @@ from .tracegenerator import TraceGen
 from scipy.io import loadmat
 
 
-class IBMGen(TraceGen):
+class TweetGen(TraceGen):
     
-    def __init__(self, shift=0, bias = 1):
-        data=loadmat("./generators/ibm_20170902_00-24_freq180sec.mat")["num_customers"][0]
+    def __init__(self, shift=436.5, bias = 385):
+        data=loadmat("./generators/twitter_20210101_730-24_freq120sec.mat")["tweets"][0]
         super().__init__(data, shift, bias)
 
     def __str__(self):

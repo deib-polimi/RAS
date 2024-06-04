@@ -3,8 +3,8 @@ from controllers import OPTCTRL, CTControllerScaleXJoint
 
 
 class JointController(OPTCTRL):
-    def __init__(self, period, init_cores, stime, BC=0.5, DC=0.95, maxCores=1000, st=0.8):
-        super().__init__(period, init_cores, stime, maxCores, st)
+    def __init__(self, period, init_cores, stime, BC=0.5, DC=0.95, maxCores=1000, st=0.8, name=None):
+        super().__init__(period, init_cores, stime, maxCores, st, name=name)
         self.scalex = CTControllerScaleXJoint(period, init_cores, BC, DC, st, max_cores=maxCores)
         self.cont = 0
         self.qn_cores = 0

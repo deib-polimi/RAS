@@ -3,8 +3,8 @@ from .controller import Controller
 
 
 class TargetController(Controller):
-    def __init__(self, period, init_cores, cooldown=60):
-        super().__init__(period, init_cores)
+    def __init__(self, period, init_cores, cooldown=60, name=None):
+        super().__init__(period, init_cores, name=name)
         self.cooldown = cooldown
 
     def reset(self):
