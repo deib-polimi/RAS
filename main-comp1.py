@@ -101,13 +101,13 @@ for st in setpoints:
 
     c10 = CTControllerScaleX(scaleXPeriod, initCores, tuning[0], tuning[1],st=st)
     c10.setName("ScaleX")
-    c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=st, stime=stime, maxCores=10**6)
-    c11.setName("OPTCTRL")
-    c12 = JointController(scaleXPeriod, initCores, stime,tuning[0], tuning[1], maxCores=10**6, st=st)
-    c12.setName("JOINTCTRL")                          
+    #c11 = OPTCTRL(OPTCTRLPeriod, init_cores=initCores, st=st, stime=stime, maxCores=10**6)
+    #c11.setName("OPTCTRL")
+    #c12 = JointController(scaleXPeriod, initCores, stime,tuning[0], tuning[1], maxCores=10**6, st=st)
+    #c12.setName("JOINTCTRL")                          
     
     #runner = Runner(horizon, [c0], monitoringWindow, Application1(appSLA))
-    runner = Runner(horizon, [c10,c11,c12], monitoringWindow, Application1(appSLA))
+    runner = Runner(horizon, [c10], monitoringWindow, Application1(appSLA))
     #runner = Runner(horizon, [c10], monitoringWindow, Application1(appSLA))
     #runner = Runner(horizon, [c11], monitoringWindow, Application1(appSLA))
     
