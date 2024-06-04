@@ -31,7 +31,7 @@ class OPTCTRL(Controller):
             self.stime = stime
     
     def OPTController(self, e, tgt, C, maxCore):
-        print("stime:=", e, "tgt:=", tgt, "user:=", C)
+        #print("stime:=", e, "tgt:=", tgt, "user:=", C)
         if(np.sum(C)>0):
             self.model = casadi.Opti() 
             nApp = len(tgt)
@@ -98,14 +98,13 @@ class OPTCTRL(Controller):
         mUsers = self.monitoring.getAllUsers()[sIdx:eIdx+1]
         mCores= self.monitoring.getAllCores()[sIdx:eIdx+1]
         
-        print(f"rt={len(mRt)},{len(mUsers)},{len(mCores)}")
+        #print(f"rt={len(mRt)},{len(mUsers)},{len(mCores)}")
 
         # i problemi di stima si possono parallelizzare 
-        self.stime[0] = self.estimator.estimate(np.array(self.rtSamples), 
-                                                np.array(self.cSamples),
-                                                np.array(self.userSamples))
-
-        print(f"###estim {self.stime}")
+        self.stime[0] = self.estimator.estimate(rt=self.rtSamples, 
+                                                s=self.cSamples,
+                                                c=self.userSamples)
+        #print(f"###estim {self.stime}")
         
         # risolvo il problema di controllo ottimo
         if(t>0):
@@ -113,10 +112,10 @@ class OPTCTRL(Controller):
         
         #print(f"{mRt[-1]}  {mUsers[-1]}  {mCores[-1]}")
 
-        #if(t>self.esrimationWindow):
-        self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t)], self.maxCores)+0.0*self.Ik,0.5),3,)
+        #if(t>=0):
+            self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t)], self.maxCores)+0.1*self.Ik,0.1),5)
         #else:
-        #    self.cores=mUsers[-1]
+            #self.cores=self.init_cores
     
     def reset(self):
         super().reset()

@@ -1,4 +1,5 @@
-if __name__ == "__main__":
+import os
+if __name__ == "__main__" or "EXTERN" in os.environ:
     from application import Application
     from matplotlib import pyplot as plt
 else:

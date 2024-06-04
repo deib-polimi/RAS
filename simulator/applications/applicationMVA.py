@@ -107,11 +107,11 @@ class ApplicationMVA(Application):
         return float(self.getRT())
 
 if __name__ == '__main__':
-    import sys
+    import sys,os
     from pathlib import Path
-    sys.path.append(str(Path(__file__).parent.parent.joinpath("generators")))
-    sys.path.append(str(Path(__file__).parent.parent.joinpath("controllers")))
-    #print(str(Path(__file__).parent.parent.joinpath("generators")))
+    os.environ["EXTERN"]="True"
+    sys.path.append(str(Path(__file__).parent.parent.parent.joinpath("generators")))
+    sys.path.append(str(Path(__file__).parent.parent.parent.joinpath("controllers/estimator")))
     import matplotlib.pyplot as plt
     from qnestimator import QNEstimaator
     from singenerator import SinGen
@@ -181,12 +181,13 @@ if __name__ == '__main__':
     e=None
     sIdx=0
     eIdx=0
+    e=None
     for i in range(horizon):
         if(len(rt)>0):
             sIdx=max(len(rt)-nsample,0)
             eIdx=min(sIdx+nsample,len(rt))
 
-        print(f"sIdx={sIdx},eIdx={eIdx}")
+        #print(f"sIdx={sIdx},eIdx={eIdx}") 
 
         if(e!=None):
             cores+=[ctrl.OPTController(e=[e], tgt=[appSLA*0.8], C=[usr[i]], maxCore=[10000])]
@@ -203,14 +204,14 @@ if __name__ == '__main__':
     plt.hlines(0.8*appSLA,xmin=0,xmax=len(rt),colors="blue", linestyles='dashed',label="SET Point")
     plt.grid()
     plt.legend()
-    plt.savefig(f"rt_{app.__class__.__name__}.pdf")
+    plt.savefig(f"test/rt_{app.__class__.__name__}.pdf")
 
     plt.figure()
     plt.plot(usr)
     plt.grid()
-    plt.savefig(f"usr_{app.__class__.__name__}.pdf")
+    plt.savefig(f"test/usr_{app.__class__.__name__}.pdf")
 
     plt.figure()
     plt.plot(cores)
     plt.grid()
-    plt.savefig(f"core_{app.__class__.__name__}.pdf")
+    plt.savefig(f"test/core_{app.__class__.__name__}.pdf")

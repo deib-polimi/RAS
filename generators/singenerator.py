@@ -1,5 +1,9 @@
 import math
-from .generator import Generator
+import os
+if("EXTERN" in os.environ):
+    from generator import Generator
+else:
+    from .generator import Generator
 
 
 class SinGen(Generator):

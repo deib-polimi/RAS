@@ -36,9 +36,9 @@ class Runner:
             a = self.app
             
             #mi serve per far partire i controllori con un punto iniziale feasible
-            if(not isinstance(ct, StaticController)):
-                ct.init_cores=max(int(gen.tick(0)*0.01), 1)
-                self.app.cores=max(int(gen.tick(0)*0.01), 1)
+            # if(not isinstance(ct, StaticController)):
+            #     ct.init_cores=max(int(gen.tick(0)*0.01), 1)
+            #     self.app.cores=max(int(gen.tick(0)*0.01), 1)
             
             s = Simulation(self.horizon, a, gen, m, ct, self.output_folder)
             s.run()
