@@ -6,14 +6,20 @@ from .estimator import QNEstimaator
 
 class OPTCTRL(Controller):
     
-    esrimationWindow = 20;
+    esrimationWindow = 30;
     rtSamples = None
     cSamples = None
     userSamples = None
 
+<<<<<<< Updated upstream
     def __init__(self, period, init_cores, stime, maxCores=1000, st=0.8, name=None):
         super().__init__(period, init_cores, st, name=name)
         if not isinstance(stime, list):
+=======
+    def __init__(self, period, init_cores, stime, maxCores=100000, st=0.8):
+        super().__init__(period, init_cores, st)
+        if(not isinstance(stime, list)):
+>>>>>>> Stashed changes
             self.stime = [stime]
         self.generator = None
         self.estimator = QNEstimaator()
@@ -132,22 +138,26 @@ class OPTCTRL(Controller):
         else:
             print("adding", rt, u, c)
             self.rtSamples.append(rt)
-            self.cSamples.append(list(map(float,c)))
+            self.cSamples.append(c)
             self.userSamples.append(u)
         
     def control(self, t):
-        sIdx=-min(len(self.monitoring.getAllRTs()),self.esrimationWindow)
-        eIdx=-1
-        print(sIdx,eIdx)
+        if(len(self.monitoring.getAllRTs())>0):
+            sIdx=max(len(self.monitoring.getAllRTs())-self.esrimationWindow,0)
+            eIdx=min(sIdx+self.esrimationWindow,len(self.monitoring.getAllRTs()))
 
-        mRt = self.monitoring.rts[sIdx:eIdx]
-        mUsers = self.monitoring.users[sIdx:eIdx]
-        mCores= self.monitoring.getAllCores()[sIdx:eIdx]
+        self.addRtSample(self.monitoring.getAllRTs()[-1], self.monitoring.getAllUsers()[-1],self.monitoring.getAllCores()[-1])
+
+        mRt = self.monitoring.getAllRTs()[sIdx:eIdx+1]
+        mUsers = self.monitoring.getAllUsers()[sIdx:eIdx+1]
+        mCores= self.monitoring.getAllCores()[sIdx:eIdx+1]
         
-        # i problemi di stima si possono parallelizzare        
-        self.stime[0] = self.estimator.estimate(np.array(mRt), 
-                                                np.array(mCores),
-                                                np.array(mUsers))
+        print(f"rt={len(mRt)},{len(mUsers)},{len(mCores)}")
+
+        # i problemi di stima si possono parallelizzare 
+        self.stime[0] = self.estimator.estimate(np.array(self.rtSamples), 
+                                                np.array(self.cSamples),
+                                                np.array(self.userSamples))
 
         print(f"###estim {self.stime}")
         
@@ -155,10 +165,10 @@ class OPTCTRL(Controller):
         if(t>0):
             self.Ik+=mRt[-1]-self.setpoint[0]
         
-        print(f"{mRt[-1]}  {mUsers[-1]}  {mCores[-1]}")
+        #print(f"{mRt[-1]}  {mUsers[-1]}  {mCores[-1]}")
 
         #if(t>self.esrimationWindow):
-        self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t + 1)], self.maxCores)+0.0*self.Ik,0.5),3,)
+        self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t+1)], self.maxCores)+0.1*self.Ik,0.5),3,)
         #else:
         #    self.cores=mUsers[-1]
     

@@ -107,22 +107,110 @@ class ApplicationMVA(Application):
         return float(self.getRT())
 
 if __name__ == '__main__':
+    import sys
+    from pathlib import Path
+    sys.path.append(str(Path(__file__).parent.parent.joinpath("generators")))
+    sys.path.append(str(Path(__file__).parent.parent.joinpath("controllers")))
+    #print(str(Path(__file__).parent.parent.joinpath("generators")))
     import matplotlib.pyplot as plt
     from qnestimator import QNEstimaator
+    from singenerator import SinGen
+    import casadi
+    from application1 import Application1
 
-    nsample=50
+    class optCtrl():
+
+        def OPTController(self, e, tgt, C, maxCore):
+            #print("stime:=", e, "tgt:=", tgt, "user:=", C)
+            if(np.sum(C)>0):
+                self.model = casadi.Opti() 
+                nApp = len(tgt)
+                
+                T = self.model.variable(1, nApp);
+                S = self.model.variable(1, nApp);
+                E_l1 = self.model.variable(1, nApp);
+                
+                self.model.subject_to(T >= 0)
+                self.model.subject_to(self.model.bounded(0, S, maxCore))
+                self.model.subject_to(E_l1 >= 0)
+            
+                sSum = 0
+                obj = 0;
+                for i in range(nApp):
+                    sSum += S[0, i]
+                    # obj+=E_l1[0,i]
+                    obj += (T[0, i] / C[i] - 1 / tgt[i]) ** 2
+            
+                for i in range(nApp):
+                    self.model.subject_to(T[0, i] == casadi.fmin(S[0, i] / e[i], C[i] / e[i]))
+            
+                self.model.minimize(obj)    
+                optionsIPOPT = {'print_time':False, 'ipopt':{'print_level':0}}
+                # self.model.solver('osqp',{'print_time':False,'error_on_fail':False})
+                self.model.solver('ipopt', optionsIPOPT) 
+                
+                sol = self.model.solve()
+                if(nApp==1):
+                    return sol.value(S)
+                else:
+                    return sol.value(S).tolist()
+            else:
+                return 10**(-3)
+
+
+    g = SinGen(500, 700, 200)
+    g.setName("SN1") 
+
+    nsample=30
+    horizon=300
 
     estimator=QNEstimaator()
-    app=ApplicationMVA(sla=0.6,stime=0.05,init_cores=4)
+    ctrl=optCtrl()
+    appSLA=0.6
+    stime=0.05
+    initCores=80
+    app=ApplicationMVA(sla=appSLA,stime=stime,init_cores=initCores)
+    #app=Application1(sla=appSLA,init_cores=initCores)
 
-    cores=np.random.random(nsample)*30
-    usr=np.random.random(nsample)*100+10
+    #cores=np.random.random(nsample)*30
+    cores=[initCores]
+    usr=[g.f(x) for x in range(0,horizon)]
 
     rt=[]
     
-    #usr=np.array([(u+1)*100 for u in range(nsample)])
-    for i in range(nsample):
-        app.cores=cores[i]
+    e=None
+    sIdx=0
+    eIdx=0
+    for i in range(horizon):
+        if(len(rt)>0):
+            sIdx=max(len(rt)-nsample,0)
+            eIdx=min(sIdx+nsample,len(rt))
+
+        print(f"sIdx={sIdx},eIdx={eIdx}")
+
+        if(e!=None):
+            cores+=[ctrl.OPTController(e=[e], tgt=[appSLA*0.8], C=[usr[i]], maxCore=[10000])]
+
+        app.cores=cores[-1]
+
         rt+=[app.__computeRT__(usr[i])] 
-        e=estimator.estimate(rt=rt,s=cores,c=usr)
-        print(e)
+        e=estimator.estimate(rt=rt[sIdx:eIdx+1],s=cores[sIdx:eIdx+1],c=usr[sIdx:eIdx+1])
+        print(f"estim={e},core={app.cores},rt={rt[i]},usr={usr[i]}")
+
+    plt.figure()
+    plt.plot(rt,label="Response Time")
+    plt.hlines(appSLA,xmin=0,xmax=len(rt),colors="red", linestyles='dashed',label="SLA")
+    plt.hlines(0.8*appSLA,xmin=0,xmax=len(rt),colors="blue", linestyles='dashed',label="SET Point")
+    plt.grid()
+    plt.legend()
+    plt.savefig(f"rt_{app.__class__.__name__}.pdf")
+
+    plt.figure()
+    plt.plot(usr)
+    plt.grid()
+    plt.savefig(f"usr_{app.__class__.__name__}.pdf")
+
+    plt.figure()
+    plt.plot(cores)
+    plt.grid()
+    plt.savefig(f"core_{app.__class__.__name__}.pdf")
