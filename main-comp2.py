@@ -25,27 +25,27 @@ def runAll(runner):
     # g = SinGen(25, 30, 50)
     # g.setName("SN1")
     # runner.run(g)
-    #
+    
     # g = SinGen(25, 60, 50)
     # g.setName("SN2")
     # runner.run(g)
-    #
+    
     # g = StepGen(range(0, 100, 20), range(0, 150, 30))
     # g.setName("SP1")
     # runner.run(g)
-    #
+    
     # g = StepGen([10, 50, 10], [10, 50, 10])
     # g.setName("SP2")
     # runner.run(g)
-    #
-    # g = RampGen(2, 80)
-    # g.setName("RP1")
-    # runner.run(g)
-    #
+    
+    g = RampGen(2, 80)
+    g.setName("RP1")
+    runner.run(g)
+    
     # g = RampGen(4, 60)
     # g.setName("RP2")
     # runner.run(g)
-    #
+    
     # g=tweetterGen()
     # g.setName("twetter")
     # runner.run(g)
@@ -53,27 +53,27 @@ def runAll(runner):
     # g = SinGen(500, 700, 200)
     # g.setName("SN1")
     # runner.run(g)
-    #
+    
     # g = SinGen(1000, 1100, 100)
     # g.setName("SN2")
     # runner.run(g)
-    #
-    g = StepGen(range(0, 1000, 100), range(0, 10000, 1000))
-    g.setName("SP1")
-    runner.run(g)
-    #
+    
+    # g = StepGen(range(0, 1000, 100), range(0, 10000, 1000))
+    # g.setName("SP1")
+    # runner.run(g)
+    
     # g = StepGen([50, 800, 1000], [50, 5000, 50])
     # g.setName("SP2")
     # runner.run(g)
-    #
+    
     # g = RampGen(10, 800)
     # g.setName("RP1")
     # runner.run(g)
-    #
+    
     # g = RampGen(20, 800)
     # g.setName("RP2")
     # runner.run(g)
-    #
+    
     # g=tweetterGen()
     # g.setName("twetter")
     # runner.run(g)

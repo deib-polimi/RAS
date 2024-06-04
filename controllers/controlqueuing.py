@@ -6,7 +6,7 @@ from estimator import QNEstimaator
 
 class OPTCTRL(Controller):
     
-    esrimationWindow = 30;
+    esrimationWindow = 20;
     rtSamples = None
     cSamples = None
     userSamples = None
@@ -130,42 +130,31 @@ class OPTCTRL(Controller):
             self.userSamples.append(u)
         
     def control(self, t):
-        rt = self.monitoring.getRT()
-        users = None
-        if(self.generator != None):
-            users = self.generator.f(t + 1)    
-        else:
-            users = self.monitoring.getUsers()
-        
-        cores = self.cores
-        
-        # legacy nel caso si usa il controllore per la singola app
-        if(not isinstance(rt, list)):
-            rt = [rt]
-            users = [users]
-            cores = [cores]
-        
-        self.addRtSample(np.maximum(rt,[0]), users, cores)
+        sIdx=-min(len(self.monitoring.getAllRTs()),self.esrimationWindow)
+        eIdx=-1
+        print(sIdx,eIdx)
 
-        # mRt = np.array(self.rtSamples).mean(axis=0)
-        # mCores = np.array(self.cSamples).mean(axis=0)
-        # mUsers = np.array(self.userSamples).mean(axis=0)
+        mRt = self.monitoring.rts[sIdx:eIdx]
+        mUsers = self.monitoring.users[sIdx:eIdx]
+        mCores= self.monitoring.getAllCores()[sIdx:eIdx]
         
-        # i problemi di stima si possono parallelizzare
-        for app in range(len(rt)):
-            self.stime[app] = self.estimator.estimate(np.array(self.rtSamples), 
-                                                      np.array(self.cSamples),
-                                                      np.array(self.userSamples))
+        # i problemi di stima si possono parallelizzare        
+        self.stime[0] = self.estimator.estimate(np.array(mRt), 
+                                                np.array(mCores),
+                                                np.array(mUsers))
+
+        print(f"###estim {self.stime}")
         
         # risolvo il problema di controllo ottimo
         if(t>0):
-            self.Ik+=rt[0]-self.setpoint[0]
+            self.Ik+=mRt[-1]-self.setpoint[0]
         
-        print(rt,users, cores)
-        if(t>self.esrimationWindow):
-            self.cores =max(self.OPTController(self.stime, self.setpoint, users, self.maxCores)+0.1*self.Ik,0.5)
-        else:
-            self.cores=users[0]
+        print(f"{mRt[-1]}  {mUsers[-1]}  {mCores[-1]}")
+
+        #if(t>self.esrimationWindow):
+        self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t + 1)], self.maxCores)+0.0*self.Ik,0.5),3,)
+        #else:
+        #    self.cores=mUsers[-1]
     
     def reset(self):
         super().reset()

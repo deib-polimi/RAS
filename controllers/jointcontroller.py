@@ -1,5 +1,5 @@
 
-from .controller import OPTCTRL, CTControllerScaleXJoint
+from controllers import OPTCTRL, CTControllerScaleXJoint
 
 
 class JointController(OPTCTRL):

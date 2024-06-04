@@ -21,8 +21,6 @@ class ApplicationMVA(Application):
         self.tree=None
         self.reset()
 
-        
-    
     def getNUsers(self):
         self.isloaded()
         for classTag in self.model.iter('closedclass'):
@@ -107,3 +105,24 @@ class ApplicationMVA(Application):
         self.readModel()
         print(req,self.cores,int(np.ceil(self.cores)),float(self.getRT()))
         return float(self.getRT())
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    from qnestimator import QNEstimaator
+
+    nsample=50
+
+    estimator=QNEstimaator()
+    app=ApplicationMVA(sla=0.6,stime=0.05,init_cores=4)
+
+    cores=np.random.random(nsample)*30
+    usr=np.random.random(nsample)*100+10
+
+    rt=[]
+    
+    #usr=np.array([(u+1)*100 for u in range(nsample)])
+    for i in range(nsample):
+        app.cores=cores[i]
+        rt+=[app.__computeRT__(usr[i])] 
+        e=estimator.estimate(rt=rt,s=cores,c=usr)
+        print(e)
