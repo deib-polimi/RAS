@@ -6,7 +6,7 @@ from .estimator import QNEstimaator
 
 class OPTCTRL(Controller):
     
-    esrimationWindow = 30;
+    esrimationWindow = 30
     rtSamples = None
     cSamples = None
     userSamples = None
@@ -82,7 +82,7 @@ class OPTCTRL(Controller):
             
             # print(self.cSamples[-1],c,np.round(c,5))
         else:
-            print("adding", rt, u, c)
+            #print("adding", rt, u, c)
             self.rtSamples.append(rt)
             self.cSamples.append(c)
             self.userSamples.append(u)

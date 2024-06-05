@@ -1,25 +1,28 @@
 
 from controllers import OPTCTRL, CTControllerScaleXJoint
+import numpy as np
 
 
 class JointController(OPTCTRL):
-    def __init__(self, period, init_cores, BC=0.5, DC=0.95, maxCores=1000, st=0.8, name=None):
+    def __init__(self, period, init_cores, range=(0.9, 1.6), maxCores=1000, st=0.8, name=None):
         super().__init__(period, init_cores, maxCores, st, name=name)
-        self.scalex = CTControllerScaleXJoint(period, init_cores, BC, DC, st, max_cores=maxCores)
+        self.scalex = CTControllerScaleXJoint(period, init_cores, st=st, max_cores=maxCores)
         self.cont = 0
         self.qn_cores = 0
+        self.range = range
 
     def control(self, t):
         #if self.cont % 1 == 0:
-        if(True):
+        if True:
             self.cont = 0
             super().control(t)
             self.qn_cores = self.cores
+        
+        rt = self.monitoring.getRT()
 
-        self.scalex.min_cores = self.qn_cores*0.8
-        self.scalex.max_cores = self.qn_cores*1.2
-        self.scalex.control(t)
-        self.cores = self.scalex.cores
+        self.scalex.min_cores = self.qn_cores*self.range[0]
+        self.scalex.max_cores = self.qn_cores*self.range[1]
+        self.cores = self.scalex.tick(t)
         self.cont += 1
 
     def setMonitoring(self,monitoring):
@@ -33,6 +36,9 @@ class JointController(OPTCTRL):
     def reset(self):
         super().reset()
         self.scalex.reset()
+
+    def setRange(self, range):
+        self.range = range
 
     def __str__(self):
         return super().__str__() + " BC: %.2f DC: %.2f " % (self.BC, self.DC)

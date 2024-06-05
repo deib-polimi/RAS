@@ -40,8 +40,8 @@ class CTControllerScaleXJoint(CTControllerScaleX):
     
     def control(self, _):
         rt = self.monitoring.getRT()
-        e = 1/self.setpoint - 1/rt
-        xc = float(self.xc_prec + self.BC * e)
-        self.cores = min(max(self.min_cores, xc + self.DC * e), self.max_cores)
-        self.xc_prec = float(self.cores - self.BC * e)
+        self.e = 1/self.setpoint - 1/rt
+        xc = float(self.xc_prec + self.BC * self.e)
+        self.cores = min(max(self.min_cores, xc + self.DC * self.e), self.max_cores)
+        self.xc_prec = float(self.cores - self.BC * self.e)
 
