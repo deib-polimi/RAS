@@ -56,7 +56,7 @@ CONTROLLER_SET_INDUSTRY = [
 SCALEX = CTControllerScaleX(SCALEX_PERIOD, INIT_CORES, min_cores=MIN_CORES, max_cores=MAX_CORES, st=SET_POINT_FACTOR, name="ScaleX")
 OPT = OPTCTRL(OPTCTRL_PERIOD, init_cores=INIT_CORES, st=SET_POINT_FACTOR, min_cores=MIN_CORES, max_cores=MAX_CORES,name="QNCTRL")
 JOINT = JointController(OPTCTRL_PERIOD, init_cores=INIT_CORES, min_cores=MIN_CORES, max_cores=MAX_CORES,st=SET_POINT_FACTOR, name="Joint")
-
+RL = RLController(SCALEX_PERIOD, INIT_CORES, MIN_CORES, MAX_CORES, SET_POINT_FACTOR, "RLController")
 
 # APPS
 APPLICATION_1 = Application1(sla=APP_SLA, init_cores=INIT_CORES)
