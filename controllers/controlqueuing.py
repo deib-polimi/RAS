@@ -11,7 +11,7 @@ class OPTCTRL(Controller):
     cSamples = None
     userSamples = None
 
-    def __init__(self, period, init_cores, maxCores=1000, st=0.8, name=None):
+    def __init__(self, period, init_cores, min_cores, max_cores=1000, st=0.8, name=None):
         super().__init__(period, init_cores, st, name=name)
         
         self.stime = []
@@ -20,7 +20,8 @@ class OPTCTRL(Controller):
         self.rtSamples = [[]]
         self.cSamples = [[]]
         self.userSamples = [[]]
-        self.maxCores = maxCores
+        self.maxCores = max_cores
+        self.min_cores = min_cores
         self.Ik=0
     
 

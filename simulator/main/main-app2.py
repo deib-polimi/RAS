@@ -2,23 +2,33 @@ from .main import Main
 from ..utils import commons as C
 
 
-tuning = (7.8, 3.3)
-r = (0.8, 1.2)
+tuning = (15.0, 15.0)
+
+r = (0.9, 4) # only if RL is False
+RL = True
+C.JOINT.setRL(RL)
+
+if RL:
+    r = (0.9, 1.1)
+else:
+    C.JOINT.setRange(r)
+
 
 C.SCALEX.tune(*tuning)
-C.OPT.setServiceTime(C.APP_2_S_TIME)
-C.JOINT.setServiceTime(C.APP_2_S_TIME)
 C.JOINT.scalex.tune(*tuning)
-C.JOINT.setRange(r)
+C.JOINT.setServiceTime(C.APP_2_S_TIME)
+C.OPT.setServiceTime(C.APP_2_S_TIME)
 
 controllers = [
-    C.SCALEX,
-    C.OPT,
-    C.JOINT
+    #C.SCALEX,
+    #C.OPT,
+    C.JOINT,
+   
 ]
 
-main = Main(f"App2_Comparison_Joint_{r[0]}_{r[1]}", controllers, [C.GEN_SET_1[0]], C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_2)
-main.start()
+for _ in range(4):
+    main = Main(f"App2_Comparison_Joint_{'RL_' if RL else ''}{r[0]}_{r[1]}", controllers, C.GEN_SET_1, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_2)
+    main.start()
 
 
 

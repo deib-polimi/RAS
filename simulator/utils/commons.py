@@ -7,8 +7,8 @@ from ..applications import *
 HORIZON = 1000
 MONITORING_WINDOW = 1
 INIT_CORES = 100
-MIN_CORES = 0.1
-MAX_CORES = 10*6
+MIN_CORES = 0.5
+MAX_CORES = 10**6
 SCALEX_PERIOD = 1
 OPTCTRL_PERIOD = 1
 VM_PERIOD = 60*3
@@ -53,9 +53,9 @@ CONTROLLER_SET_INDUSTRY = [
     TargetController(SCALEX_PERIOD, INIT_CORES, cooldown=0, name="TargetFast")
 ]
 
-SCALEX = CTControllerScaleX(SCALEX_PERIOD, INIT_CORES, st=SET_POINT_FACTOR, name="ScaleX")
-OPT = OPTCTRL(OPTCTRL_PERIOD, init_cores=INIT_CORES, st=SET_POINT_FACTOR, maxCores=MAX_CORES,name="QNCTRL")
-JOINT = JointController(OPTCTRL_PERIOD, init_cores=INIT_CORES,maxCores=MAX_CORES,st=SET_POINT_FACTOR, name="Joint")
+SCALEX = CTControllerScaleX(SCALEX_PERIOD, INIT_CORES, min_cores=MIN_CORES, max_cores=MAX_CORES, st=SET_POINT_FACTOR, name="ScaleX")
+OPT = OPTCTRL(OPTCTRL_PERIOD, init_cores=INIT_CORES, st=SET_POINT_FACTOR, min_cores=MIN_CORES, max_cores=MAX_CORES,name="QNCTRL")
+JOINT = JointController(OPTCTRL_PERIOD, init_cores=INIT_CORES, min_cores=MIN_CORES, max_cores=MAX_CORES,st=SET_POINT_FACTOR, name="Joint")
 
 
 # APPS
