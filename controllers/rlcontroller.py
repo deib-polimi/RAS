@@ -27,7 +27,6 @@ class RLController(Controller):
         # states are defined as (error, qn_ct_core_diff, user_slope) such metrics are quantized as follows
         self.error_quantization = 0.05 # states are defined by chunks of 0.05s
         self.user_quantitization = 10 # states are defined by chunks of 10 users
-        self.core_quantization = 0.5 # states are defined by chunks of 0.5 cores 
 
         self.scale_reward_if_violation = 10 # how large is the penalty if the rt > setpoint
 
@@ -62,15 +61,15 @@ class RLController(Controller):
     
     def get_state(self):
         error = self.monitoring.getRT() - self.setpoint
-        quantized_error = int(round(error, 2) / self.error_quantization)
+        quantized_error = max(-10, min(10, int(round(error, 2) / self.error_quantization)))
         quantized_error = f"{'ALARM-' if error > self.alarm_state else ''}{quantized_error}"
         
         try:
-            users = self.controller.monitoring.getAllUsers()
+            users = self.monitoring.getAllUsers()
             quantized_user_difference = int((users[-1] - users[-3])/self.user_quantitization)
-
         except:
             quantized_user_difference  = 0
+        
 
         return quantized_error, quantized_user_difference
     

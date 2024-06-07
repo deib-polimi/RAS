@@ -22,12 +22,13 @@ C.OPT.setServiceTime(C.APP_2_S_TIME)
 controllers = [
     #C.SCALEX,
     #C.OPT,
-    C.JOINT,
+    #C.JOINT,
+    C.RL
    
 ]
 
 for _ in range(4):
-    main = Main(f"App2_Comparison_Joint_{'RL_' if RL else ''}{r[0]}_{r[1]}", controllers, C.GEN_SET_1, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_2)
+    main = Main(f"App2_Comparison_Joint_RL_Controller", controllers, C.GEN_SET_1, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_2)
     main.start()
 
 
