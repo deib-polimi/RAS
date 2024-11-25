@@ -2,6 +2,7 @@ from .controller import Controller
 import casadi
 import numpy as np
 from .estimator import QNEstimaator
+from .circular import CircularArray
 
 
 class OPTCTRL(Controller):
@@ -23,6 +24,7 @@ class OPTCTRL(Controller):
         self.maxCores = max_cores
         self.min_cores = min_cores
         self.Ik=0
+        self.noise=CircularArray(size=100)
     
 
     def setServiceTime(self, stime):
@@ -87,6 +89,12 @@ class OPTCTRL(Controller):
             self.rtSamples.append(rt)
             self.cSamples.append(c)
             self.userSamples.append(u)
+
+    def cmpNoise(self,core=None,users=None,st=None,rtm=None):
+        pred=users/(core/st)
+        noise=rtm-pred
+        #print(f"###pred={pred}; noise={noise};")
+        return max(noise,0)
         
     def control(self, t):
         if(len(self.monitoring.getAllRTs())>0):
@@ -105,18 +113,13 @@ class OPTCTRL(Controller):
         self.stime[0] = self.estimator.estimate(rt=self.rtSamples, 
                                                 s=self.cSamples,
                                                 c=self.userSamples)
-        #print(f"###estim {self.stime}")
-        
+
+        print(f"###estim {self.stime}")        
         # risolvo il problema di controllo ottimo
         if(t>0):
-            self.Ik+=mRt[-1]-self.setpoint[0]
-        
-        #print(f"{mRt[-1]}  {mUsers[-1]}  {mCores[-1]}")
-
-        #if(t>=0):
-            self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t)], self.maxCores)+0.1*self.Ik,0.1),5)
-        #else:
-            #self.cores=self.init_cores
+            self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t)], self.maxCores),0.1),5)
+        else:
+            self.cores=self.init_cores
     
     def reset(self):
         super().reset()

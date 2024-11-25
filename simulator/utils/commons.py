@@ -4,7 +4,7 @@ from ..applications import *
 
 # CONSTANTS
 
-HORIZON = 1000
+HORIZON = 500
 MONITORING_WINDOW = 1
 INIT_CORES = 100
 MIN_CORES = 0.5
@@ -13,15 +13,16 @@ SCALEX_PERIOD = 1
 OPTCTRL_PERIOD = 1
 VM_PERIOD = 60*3
 CONTAINER_PERIOD = 30
-SET_POINT_FACTOR = 0.8
+SET_POINT_FACTOR = 1
 APP_1_S_TIME=0.2 
-APP_2_S_TIME=0.2 
-APP_SLA = 0.6
+APP_2_S_TIME=0.2
+APP_MMC_S_TIME=0.2 
+APP_SLA = 0.4
 
 # GENERATORS
 GEN_SET_1 = [
     SinGen(500, 700, 200), 
-    SinGen(1000, 1100, 100),
+    #SinGen(1000, 1100, 100),
     StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
     StepGen([50, 800, 1000], [50, 5000, 50]),
     RampGen(10, 800),
@@ -30,13 +31,10 @@ GEN_SET_1 = [
 ]
 
 GEN_SET_test = [
-    # SinGen(500, 700, 200), 
-    #SinGen(1000, 1100, 100),
-    # StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
-    # StepGen([50, 800, 1000], [50, 5000, 50]),
-    # RampGen(10, 800),
-     RampGen(20, 800),
-    #TweetGen()
+    #SinGen(150, 160, 200), 
+    #StepGen([400,800,1200,1600], [50, 300,50,300])
+    #RampGen(slope=10, steady=50, initial=200, rampstart=10)
+    TweetGen()
 ]
 
 # CONTROLLERS
@@ -55,9 +53,11 @@ CONTROLLER_SET_INDUSTRY = [
 
 SCALEX = CTControllerScaleX(SCALEX_PERIOD, INIT_CORES, min_cores=MIN_CORES, max_cores=MAX_CORES, st=SET_POINT_FACTOR, name="ScaleX")
 OPT = OPTCTRL(OPTCTRL_PERIOD, init_cores=INIT_CORES, st=SET_POINT_FACTOR, min_cores=MIN_CORES, max_cores=MAX_CORES,name="QNCTRL")
+ROBUST = OPTCTRLROBUST(OPTCTRL_PERIOD, init_cores=INIT_CORES, st=SET_POINT_FACTOR, min_cores=MIN_CORES, max_cores=MAX_CORES,name="QNCTRLROBUST")
 JOINT = JointController(OPTCTRL_PERIOD, init_cores=INIT_CORES, min_cores=MIN_CORES, max_cores=MAX_CORES,st=SET_POINT_FACTOR, name="Joint")
 RL = RLController(SCALEX_PERIOD, INIT_CORES, MIN_CORES, MAX_CORES, SET_POINT_FACTOR, "RLController")
 
 # APPS
 APPLICATION_1 = Application1(sla=APP_SLA, init_cores=INIT_CORES)
 APPLICATION_2 = ApplicationMVA(sla=APP_SLA,stime=APP_2_S_TIME,init_cores=INIT_CORES)
+APPLICATION_MMC = applicationMMC(sla=APP_SLA,stime=APP_MMC_S_TIME,init_cores=INIT_CORES)

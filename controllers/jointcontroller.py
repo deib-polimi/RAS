@@ -28,7 +28,13 @@ class JointController(OPTCTRL):
         
         m = max(self.min_cores, self.qn_cores*self.range[0])
         M = self.qn_cores*self.range[1]
-        self.cores = min(max(self.ct_cores, m), M)
+
+        self.min_cores = m
+        self.max_cores = M
+        #self.cores = min(max(self.ct_cores, m), M)
+        self.cores=self.ct_cores
+        #self.cores=self.qn_cores
+        #self.cores=self.ct_cores
 
     def setRL(self, rl):
         if rl:
