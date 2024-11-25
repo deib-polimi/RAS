@@ -21,12 +21,12 @@ APP_SLA = 0.4
 
 # GENERATORS
 GEN_SET_1 = [
-    SinGen(500, 700, 200), 
+    SinGen(500/2, 700/2, 200), 
     #SinGen(1000, 1100, 100),
-    StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
-    StepGen([50, 800, 1000], [50, 5000, 50]),
-    RampGen(10, 800),
-    RampGen(20, 800),
+    StepGen(range(0, 1000, 100), range(0, 10000/10, 1000/10)),
+    StepGen([50, 800, 1000], [50, 5000/10, 50]),
+    RampGen(10, 800/2),
+    RampGen(20, 800/2),
     TweetGen()
 ]
 
