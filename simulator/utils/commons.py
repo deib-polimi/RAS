@@ -25,8 +25,8 @@ GEN_SET_1 = [
     #SinGen(1000, 1100, 100),
     StepGen(range(0, 1000, 100), range(0, 10000//10, 1000//10)),
     StepGen([50, 800, 1000], [50, 5000//10, 50]),
-    RampGen(10, 800/2),
-    RampGen(20, 800/2),
+    RampGen(2, 300),
+    #RampGen(20, 800/2),
     TweetGen()
 ]
 
@@ -34,7 +34,8 @@ GEN_SET_test = [
     #SinGen(150, 160, 200), 
     #StepGen([400,800,1200,1600], [50, 300,50,300])
     #RampGen(slope=10, steady=50, initial=200, rampstart=10)
-    TweetGen()
+    #TweetGen()
+    RampGen(2, 300),
 ]
 
 # CONTROLLERS
