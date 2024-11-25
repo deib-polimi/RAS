@@ -29,7 +29,7 @@ controllers = [
 ]+C.CONTROLLER_SET_INDUSTRY
 
 for _ in range(1):
-    main = Main(f"AppMMC_Joint_SEAMS2rnd", controllers, C.GEN_SET_test, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_MMC)
+    main = Main(f"AppMMC_Joint_SEAMS2rnd", controllers, C.GEN_SET_1, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_MMC)
     main.start()
 
 
