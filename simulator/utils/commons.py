@@ -21,12 +21,12 @@ APP_SLA = 0.4
 
 # GENERATORS
 GEN_SET_1 = [
-    SinGen(500/2, 700/2, 200), 
-    #SinGen(1000, 1100, 100),
-    StepGen(range(0, 1000, 100), range(0, 10000//10, 1000//10)),
-    StepGen([50, 800, 1000], [50, 5000//10, 50]),
-    RampGen(2, 300),
-    #RampGen(20, 800/2),
+    SinGen(500, 700, 200), 
+    SinGen(1000, 1100, 100),
+    StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
+    StepGen([50, 800, 1000], [50, 5000, 50]),
+    RampGen(10, 800),
+    RampGen(20, 800),
     TweetGen()
 ]
 
@@ -60,5 +60,6 @@ RL = RLController(SCALEX_PERIOD, INIT_CORES, MIN_CORES, MAX_CORES, SET_POINT_FAC
 
 # APPS
 APPLICATION_1 = Application1(sla=APP_SLA, init_cores=INIT_CORES)
+APPLICATION_Noisy = Application1Noisy(sla=APP_SLA, init_cores=INIT_CORES)
 APPLICATION_2 = ApplicationMVA(sla=APP_SLA,stime=APP_2_S_TIME,init_cores=INIT_CORES)
 APPLICATION_MMC = applicationMMC(sla=APP_SLA,stime=APP_MMC_S_TIME,init_cores=INIT_CORES)

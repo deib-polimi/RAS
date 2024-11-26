@@ -28,14 +28,8 @@ controllers = [
     #C.RL 
 ]+C.CONTROLLER_SET_INDUSTRY
 
-# controllers = [
-#     C.SCALEX,
-#     C.OPT,
-#     C.ROBUST
-# ]
-
 for _ in range(1):
-    main = Main(f"AppMMC_Joint_SEAMS2rnd", controllers, C.GEN_SET_1, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_MMC)
+    main = Main(f"AppNoisy_SEAMS2rnd", controllers, C.GEN_SET_1, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_Noisy)
     main.start()
 
 

@@ -1,6 +1,6 @@
 import os
 
-from application import Application
+from .application import Application
 
 class Application1(Application):
     A1_NOM = 0.00763

@@ -1,4 +1,4 @@
-from application1 import Application1
+from .application1 import Application1
 import random
 from matplotlib import pyplot as plt
 import numpy as np
