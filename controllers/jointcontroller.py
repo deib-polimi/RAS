@@ -18,10 +18,10 @@ class JointController(OPTCTRL):
         self.rl = None
 
     def control(self, t):
-        
         super().control(t)
         self.qn_cores = self.cores
         self.ct_cores = self.scalex.tick(t)
+        
         if self.rl:
             action = self.rl.learn(t)
             self.range=(max(self.minRange, min(1, self.range[0]+action[0])), min(self.maxRange, max(1, self.range[1]+action[1])))
@@ -132,8 +132,8 @@ class RL:
         return [(al, ar) for al, ar in self.actions if rl+al >= m and rl+al <= 1 and rr+ar <= M and rr+ar >= 1]
 
     def learn(self, t):
-        new_state = self.get_state()
         
+        new_state = self.get_state()
         reward = 0
         
         if new_state not in self.Q:
