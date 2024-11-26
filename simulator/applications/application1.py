@@ -1,9 +1,6 @@
 import os
-if __name__ == "__main__" or "EXTERN" in os.environ:
-    from application import Application
-    from matplotlib import pyplot as plt
-else:
-    from .application import Application
+
+from application import Application
 
 class Application1(Application):
     A1_NOM = 0.00763

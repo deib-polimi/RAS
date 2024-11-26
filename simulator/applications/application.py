@@ -3,7 +3,7 @@ import numpy as np
 
 class Application:
     
-    def __init__(self, sla, disturbance=0.1, init_cores=1):
+    def __init__(self, sla, disturbance=0.0, init_cores=1):
         self.init_cores = init_cores
         self.cores = init_cores
         self.RT = 0.0
@@ -13,8 +13,7 @@ class Application:
 
     def setRT(self, req):
         exactRT = self.__computeRT__(req)
-        #self.RT = exactRT * (1.0+random.random()*self.disturbance)
-        self.RT=exactRT
+        self.RT = exactRT * (1.0+random.random()*self.disturbance)
         return self.RT
 
     def __computeRT__(self, req):
