@@ -1,4 +1,4 @@
-To install and run simulationstra p (requires Python3)
+To install and run simulation (requires Python3)
 
 - pip install -r simulator/requirements.txt
 - python -m simulator.main.<your main file without .py>
