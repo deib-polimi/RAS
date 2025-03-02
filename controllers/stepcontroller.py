@@ -3,8 +3,8 @@ from .controller import Controller
 
 
 class StepController(Controller):
-    def __init__(self, period, init_cores, steps, cooldown=60):
-        super().__init__(period, init_cores)
+    def __init__(self, period, init_cores, steps, cooldown=60, name=None):
+        super().__init__(period, init_cores, name=name)
         self.cooldown = cooldown
         self.steps = steps
 

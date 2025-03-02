@@ -2,8 +2,8 @@ from .controller import Controller
 
 
 class RBController(Controller):
-    def __init__(self, period, init_cores, step=1, l=0.5, h=0.9):
-        super().__init__(period, init_cores)
+    def __init__(self, period, init_cores, step=1, l=0.5, h=0.9, name=None):
+        super().__init__(period, init_cores, name=None)
         self.l = l
         self.h = h
         self.step = step
@@ -20,8 +20,8 @@ class RBController(Controller):
 
 
 class RBControllerWithCooldown(RBController):
-    def __init__(self, period, init_cores, step=1, l=0.5, h=0.9, cooldown=60):
-        super().__init__(period, init_cores, step, l, h)
+    def __init__(self, period, init_cores, step=1, l=0.5, h=0.9, cooldown=60, name=None):
+        super().__init__(period, init_cores, step, l, h, name=name)
         self.cooldown = cooldown
 
     def reset(self):
