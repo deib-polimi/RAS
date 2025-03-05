@@ -180,5 +180,5 @@ dmypy.json
 
 
 #JMT file
-simulator/applications/applicationMVA/JMT/tier.jmva
-simulator/applications/applicationMVA/JMT/tier.jmva-result.jmva
+./simulator/applications/applicationMVA/JMT/tier.jmva
+./simulator/applications/applicationMVA/JMT/tier.jmva-result.jmva
