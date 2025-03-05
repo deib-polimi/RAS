@@ -180,4 +180,5 @@ dmypy.json
 
 
 #JMT file
-*.jmva
+*tier.jmva
+*tier.jmva-result.jmva
