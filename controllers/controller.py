@@ -2,6 +2,7 @@ class Controller:
     def __init__(self, period, init_cores, st=0.8, name=None):
         self.period = period
         self.init_cores = init_cores
+        self.cores = self.init_cores
         self.st = st
         self.name = name if name else type(self).__name__
         

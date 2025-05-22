@@ -1,3 +1,5 @@
+import numpy as np
+
 class Monitoring:
     def __init__(self, window, sla, reducer=lambda x: sum(x)/len(x)):
         self.reducer = reducer
@@ -56,6 +58,27 @@ class Monitoring:
         return self.allCores
     def getAllTimes(self):
         return self.time
+    
+    def getRTp95(self):
+        if not self.rts:
+            return 0.0
+        return float(np.percentile(self.rts, 95))
+
+    def getQueueLen(self):
+        if not self.allUsers or not self.allCores:
+            return 0.0
+        backlog = self.allUsers[-1] - self.allCores[-1]
+        return float(max(backlog, 0))
+
+    def getArrivalRate(self):
+        if len(self.allUsers) < 2:
+            return 0.0
+        # differenza utenti fra gli ultimi due tick
+        du = self.allUsers[-1] - self.allUsers[-2]
+        dt = self.time[-1] - self.time[-2]
+        if dt <= 0:
+            return 0.0
+        return float(du / dt)
         
     def reset(self):
         self.allRts = []

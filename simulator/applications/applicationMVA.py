@@ -92,7 +92,7 @@ class ApplicationMVA(Application):
         self.isloaded()
         self.tree.write(self.modelPath)
     
-    def __computeRT__(self, req):
+    def __computeRT__(self, req, t):
         self.readModel()
         self.updateNUsers(int(req))
         self.updateNServers(int(np.ceil(self.cores)))

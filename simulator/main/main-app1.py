@@ -2,29 +2,21 @@ from .main import Main
 from ..utils import commons as C
 
 
-r = (0.9, 4) # only if RL is False
-RL = False
-C.JOINT.setRL(RL)
+tuning = (2.0, 1.5)
 
-if RL:
-    r = (0.9, 1.1)
-else:
-    C.JOINT.setRange(r)
-
-
+C.SCALEX.tune(*tuning)
 C.OPT.setServiceTime(C.APP_1_S_TIME)
-C.JOINT.setServiceTime(C.APP_1_S_TIME)
-
 
 controllers = [
-    #C.SCALEX,
-    #C.OPT,
-    #C.JOINT,
-    C.RL
+   # C.SCALEX,
+   # C.OPT,
+    C.PPO,
 ]
 
-for _ in range(100):
-    main = Main(f"App1_Comparison_RL_Controller", controllers, C.GEN_SET_1, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_1)
+C.PPO.setTrain(True)
+
+for _ in range(1000):
+    main = Main(f"App1-PPO", controllers, C.GEN_TRAIN_SET, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_1)
     main.start()
 
 

@@ -20,8 +20,8 @@ C.JOINT.setServiceTime(C.APP_2_S_TIME)
 C.OPT.setServiceTime(C.APP_2_S_TIME)
 
 controllers = [
-    #C.SCALEX,
-    #C.OPT,
+    C.SCALEX,
+    C.OPT,
     #C.JOINT,
     C.RL
    

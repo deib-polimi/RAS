@@ -20,7 +20,7 @@ class Simulation:
     def run(self):
         for t in range(0, self.horizon):
             users = self.generator.tick(t)
-            rt = self.app.setRT(users)
+            rt = self.app.setRT(users, t)
             self.monitoring.tick(t, rt, users, self.app.cores)
             cores = self.controller.tick(t)
             self.app.cores = cores

@@ -6,20 +6,17 @@ import numpy as np
 class Application1Noisy(Application1):
     
     def __init__(self, sla, init_cores=1):
-        self.t = 0
         self.cores = 1
-        self.serviceTime = self.__computeRT__(1)
+        self.serviceTime = self.__computeRT__(1, 0)
         super().__init__(sla, 0.0, init_cores)
 
-    def setRT(self, req):
-        exactRT = self.__computeRT__(req)
+    def setRT(self, req, t):
+        self.RT = self.__computeRT__(req, t)
 
-        noiseLevel = self.t // 10
+        if t > 300:
+            self.RT *= 10
 
-        RT = max(self.serviceTime*0.5, exactRT * (1.0+np.random.normal(0, noiseLevel/10*self.serviceTime)))
         
-        self.RT = RT
-        self.t += 1
         return self.RT
 
 

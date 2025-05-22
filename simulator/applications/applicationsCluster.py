@@ -219,7 +219,7 @@ class AppsCluster(Application):
     
     #la differenza rispetto a prima e' che mi aspetto che users sia un vettore con un numero di componentni
     #pari a len(self.appNames)
-    def __computeRT__(self, users):
+    def __computeRT__(self, users, t):
         rtime=np.zeros([len(self.appNames)])
         if(self.rdb is None):
             rdb=redis.Redis()

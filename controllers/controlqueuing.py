@@ -64,7 +64,7 @@ class OPTCTRL(Controller):
             
             sol = self.model.solve()
             if(nApp==1):
-                return sol.value(S)
+                return min(maxCore, sol.value(S))
             else:
                 return sol.value(S).tolist()
         else:
@@ -117,7 +117,8 @@ class OPTCTRL(Controller):
         print(f"###estim {self.stime}")        
         # risolvo il problema di controllo ottimo
         if(t>0):
-            self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t)], self.maxCores),0.1),5)
+            self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t)], self.maxCores), self.min_cores),5)
+           
         else:
             self.cores=self.init_cores
     

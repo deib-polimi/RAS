@@ -41,7 +41,7 @@ class applicationMMC(Application):
 		self.tag=tag
 		self.reset()
 
-	def __computeRT__(self, req):
+	def __computeRT__(self, req, t):
 		self.env = simpy.Environment()
 		self.server = ProcessorSharing(self.env, capacity=self.cores)
 		self.coxian_params = None  # List of tuples: (probability, rate)
