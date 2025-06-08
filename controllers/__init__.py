@@ -13,3 +13,4 @@ from .controller import Controller
 from .circular import CircularArray
 from .ppocontroller import PPOController
 from .firmcontroller import FIRM_DDPG_Controller
+from .faasconfcontroller import FaaSConfController
