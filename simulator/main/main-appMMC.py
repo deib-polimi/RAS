@@ -21,12 +21,12 @@ C.OPT.setServiceTime(C.APP_2_S_TIME)
 C.ROBUST.setServiceTime(C.APP_2_S_TIME)
 
 controllers = [
-    C.SCALEX,
-    C.OPT,
+    #C.SCALEX,
+    #C.OPT,
     C.ROBUST,
     #C.JOINT,
     #C.RL 
-]+C.CONTROLLER_SET_INDUSTRY
+]#+C.CONTROLLER_SET_INDUSTRY
 
 # controllers = [
 #     C.SCALEX,
@@ -35,7 +35,7 @@ controllers = [
 # ]
 
 for _ in range(1):
-    main = Main(f"AppMMC_Joint_SEAMS2rnd", controllers, C.GEN_SET_1, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_MMC)
+    main = Main(f"AppMMC_SEAMS2rnd", controllers, C.GEN_SET_test, C.HORIZON, C.MONITORING_WINDOW, C.APPLICATION_MMC)
     main.start()
 
 

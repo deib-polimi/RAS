@@ -14,7 +14,8 @@ class Application1Noisy(Application1):
     def setRT(self, req):
         exactRT = self.__computeRT__(req)
 
-        noiseLevel = self.t // 10
+        #noiseLevel = self.t // 10
+        noiseLevel = 50
 
         RT = max(self.serviceTime*0.5, exactRT * (1.0+np.random.normal(0, noiseLevel/10*self.serviceTime)))
         

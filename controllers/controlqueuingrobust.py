@@ -24,7 +24,7 @@ class OPTCTRLROBUST(Controller):
         self.maxCores = max_cores
         self.min_cores = min_cores
         self.Ik=0
-        self.noise=CircularArray(size=100)
+        self.noise=CircularArray(size=300)
     
 
     def setServiceTime(self, stime):
@@ -93,8 +93,8 @@ class OPTCTRLROBUST(Controller):
     def cmpNoise(self,core=None,users=None,st=None,rtm=None):
         pred=users/(core/st)
         noise=rtm-pred
-        #print(f"###pred={pred}; noise={noise};")
-        return max(noise,0)
+        print(f"###pred={pred}; rtm={rtm}; noise={noise}; noise%={noise/pred}")
+        return max(noise/pred,0)
         
     def control(self, t):
         if(len(self.monitoring.getAllRTs())>0):
@@ -124,12 +124,14 @@ class OPTCTRLROBUST(Controller):
             #print(mRt[-1],self.setpoint[0],self.Ik)
 
         self.noise.append(self.cmpNoise(core=self.cores,users=self.generator.f(t),st=self.stime[0],rtm=mRt[-1]))
-        np95=np.percentile(self.noise.arr,95)
+        np95=np.percentile(self.noise.arr,99)
         #np95=np.mean(self.noise)
         #print(f"{mRt[-1]}  {mUsers[-1]}  {mCores[-1]}")
         print(f"p95noie={np95}")
-        if(t>=0):
-            self.cores=round(max(self.OPTController(self.stime+np95, self.setpoint, [self.generator.f(t)], self.maxCores),0.1),5)
+        if(t>0):
+            if(np95>0):
+                self.stime[0]=self.stime[0]*(1+np95*1.5)
+            self.cores=round(max(self.OPTController(self.stime, self.setpoint, [self.generator.f(t)], self.maxCores),0.1),5)
         else:
             self.cores=self.init_cores
     

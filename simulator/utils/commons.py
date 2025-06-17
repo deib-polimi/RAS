@@ -21,21 +21,21 @@ APP_SLA = 0.4
 
 # GENERATORS
 GEN_SET_1 = [
-    SinGen(500, 700, 200), 
+    # SinGen(500, 700, 200), 
     SinGen(1000, 1100, 100),
-    StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
-    StepGen([50, 800, 1000], [50, 5000, 50]),
-    RampGen(10, 800),
-    RampGen(20, 800),
-    TweetGen()
+    # StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
+    # StepGen([50, 800, 1000], [50, 5000, 50]),
+    # RampGen(10, 800),
+    # RampGen(20, 800),
+    # TweetGen()
 ]
 
 GEN_SET_test = [
     #SinGen(150, 160, 200), 
     #StepGen([400,800,1200,1600], [50, 300,50,300])
     #RampGen(slope=10, steady=50, initial=200, rampstart=10)
-    #TweetGen()
-    RampGen(2, 300),
+    TweetGen()
+    #RampGen(2, 300),
 ]
 
 # CONTROLLERS
