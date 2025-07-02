@@ -5,3 +5,10 @@ scipy
 casadi
 redis
 tqdm
+torch 
+torchvision
+scikit-learn
+gymnasium
+pandas
+scipy
+tensorflow

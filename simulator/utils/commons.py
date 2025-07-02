@@ -4,16 +4,16 @@ from ..applications import *
 
 # CONSTANTS
 
-HORIZON = 1000
+HORIZON = 600
 MONITORING_WINDOW = 1
 INIT_CORES = 5
 MIN_CORES = 1
-MAX_CORES = 128
+MAX_CORES = 30
 SCALEX_PERIOD = 1
 OPTCTRL_PERIOD = 1
 VM_PERIOD = 60*3
 CONTAINER_PERIOD = 30
-SET_POINT_FACTOR = 0.8
+SET_POINT_FACTOR = 1
 APP_1_S_TIME=0.2 
 APP_2_S_TIME=0.2
 APP_MMC_S_TIME=0.2 
@@ -31,8 +31,9 @@ GEN_SET_1 = [
 ]
 
 GEN_TRAIN_SET = [
-    SinGen(500, 700, 200), 
-   # RampGen(10, 800),
+   #SinGen(200, 220, 200), 
+   SinGen(1000, 1100, 100),
+   #RampGen(10, 800),
    # StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
    # StepGen([50, 800, 1000], [50, 5000, 50]),
 
@@ -70,34 +71,34 @@ OPT = OPTCTRL(OPTCTRL_PERIOD, init_cores=INIT_CORES, st=SET_POINT_FACTOR, min_co
 ROBUST = OPTCTRLROBUST(OPTCTRL_PERIOD, init_cores=INIT_CORES, st=SET_POINT_FACTOR, min_cores=MIN_CORES, max_cores=MAX_CORES,name="QNCTRLROBUST")
 JOINT = JointController(OPTCTRL_PERIOD, init_cores=INIT_CORES, min_cores=MIN_CORES, max_cores=MAX_CORES,st=SET_POINT_FACTOR, name="Joint")
 RL = RLController(SCALEX_PERIOD, INIT_CORES, MIN_CORES, MAX_CORES, SET_POINT_FACTOR, "RLController")
+IntelligentHPA = intellegentHPA(period=SCALEX_PERIOD, init_cores=INIT_CORES, max_cores=MAX_CORES, st=SET_POINT_FACTOR, name="IntelligentHPA")
 
 PPO = PPOController(
     SCALEX_PERIOD, INIT_CORES,
     min_cores=MIN_CORES, max_cores=MAX_CORES,
     st=SET_POINT_FACTOR,
-    name="PPOController"
+    name="PPOController",
+    train=False
 )
 
-PPO_GUARD = PPOController(
+PPO_GUARD = GPPPOController(
     SCALEX_PERIOD, INIT_CORES,
     min_cores=MIN_CORES, max_cores=MAX_CORES,
-    st=SET_POINT_FACTOR, name="PPO-Guard",
-    burst_mode="guard",          # <-- nuovo
-    burst_threshold_q=20,        # salto coda
-    burst_threshold_r=30,        # salto req/s
-    burst_extra=4
+    st=SET_POINT_FACTOR,
+    name="GPPPOController",
+    train=False
 )
 
-PPO_HYBRID = PPOController(
-    SCALEX_PERIOD, INIT_CORES,
-    min_cores=MIN_CORES, max_cores=MAX_CORES,
-    st=SET_POINT_FACTOR, name="PPO-Hybrid",
-    burst_mode="hybrid",         # RL + guard-rail
-    burst_threshold_q=15,
-    burst_threshold_r=25,
-    burst_extra=3,
-    trend_features=True          # aggiunge queue_delta e rate_delta
-)
+# PPO_HYBRID = PPOController(
+#     SCALEX_PERIOD, INIT_CORES,
+#     min_cores=MIN_CORES, max_cores=MAX_CORES,
+#     st=SET_POINT_FACTOR, name="PPO-Hybrid",
+#     burst_mode="hybrid",         # RL + guard-rail
+#     burst_threshold_q=15,
+#     burst_threshold_r=25,
+#     burst_extra=3,
+#     trend_features=True          # aggiunge queue_delta e rate_delta
+# )
 
 # APPS
 APPLICATION_1 = Application1(sla=APP_SLA, init_cores=INIT_CORES)

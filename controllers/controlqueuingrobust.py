@@ -110,7 +110,7 @@ class OPTCTRLROBUST(Controller):
         #print(f"rt={len(mRt)},{len(mUsers)},{len(mCores)}")
 
         # i problemi di stima si possono parallelizzare 
-        self.stime[0] = self.estimator.estimate(rt=self.rtSamples, 
+        self.stime = self.estimator.estimate(rt=self.rtSamples, 
                                                 s=self.cSamples,
                                                 c=self.userSamples)
 
@@ -123,13 +123,13 @@ class OPTCTRLROBUST(Controller):
                 self.Ik+=mRt[-1]-self.setpoint[0]
             #print(mRt[-1],self.setpoint[0],self.Ik)
 
-        self.noise.append(self.cmpNoise(core=self.cores,users=self.generator.f(t),st=self.stime[0],rtm=mRt[-1]))
+        self.noise.append(self.cmpNoise(core=self.cores,users=self.generator.f(t),st=self.stime,rtm=mRt[-1]))
         np95=np.percentile(self.noise.arr,95)
         #np95=np.mean(self.noise)
         #print(f"{mRt[-1]}  {mUsers[-1]}  {mCores[-1]}")
         print(f"p95noie={np95}")
         if(t>=0):
-            self.cores=round(max(self.OPTController(self.stime+np95, self.setpoint, [self.generator.f(t)], self.maxCores),0.1),5)
+            self.cores=round(max(self.OPTController([self.stime+np95], self.setpoint, [self.generator.f(t)], self.maxCores),0.1),5)
         else:
             self.cores=self.init_cores
     

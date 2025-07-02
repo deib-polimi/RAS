@@ -12,5 +12,7 @@ from .rlcontroller import RLController
 from .controller import Controller
 from .circular import CircularArray
 from .ppocontroller import PPOController
+from .gpppo_controller import GPPPOController
 from .firmcontroller import FIRM_DDPG_Controller
 from .faasconfcontroller import FaaSConfController
+from .intellegentHPA import intellegentHPA
