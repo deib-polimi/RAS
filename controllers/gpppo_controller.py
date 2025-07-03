@@ -15,7 +15,7 @@ class GPPPOController(PPOController):
     """PPO autoscaler with GP-based compensation and PID training data generation."""
 
     # GP parameters
-    _GP_TRAIN_START = 550
+    _GP_TRAIN_START = 100
     _GP_MIN_SAMPLES = 300
     _GP_TRAIN_FREQ = 50
     _GP_INPUT_DIM = 3  # [RL action, num_users, response_time]

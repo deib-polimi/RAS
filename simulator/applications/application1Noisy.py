@@ -13,8 +13,8 @@ class Application1Noisy(Application1):
     def setRT(self, req, t):
         self.RT = self.__computeRT__(req, t)
 
-        if False:
-            return self.RT * 20
+        if t>150:
+            return self.RT * 3
         # if t >= 800 and t < 1300:
         #     return self.RT * 15
         # if t >= 1300:
