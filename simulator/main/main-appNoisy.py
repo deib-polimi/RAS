@@ -10,8 +10,9 @@ controllers = [
     #C.SCALEX,
     #C.OPT,
     #C.PPO,
-    #C.PPO_GUARD
+    #C.PPO_GUARD,
     C.IntelligentHPA
+    #C.GP_INTELLIGENT_HPA
 ]
 
 C.PPO.setTrain(False)

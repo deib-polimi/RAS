@@ -4,16 +4,16 @@ from ..applications import *
 
 # CONSTANTS
 
-HORIZON = 600
+HORIZON = 1200
 MONITORING_WINDOW = 1
 INIT_CORES = 5
 MIN_CORES = 1
-MAX_CORES = 30
+MAX_CORES = 60
 SCALEX_PERIOD = 1
 OPTCTRL_PERIOD = 1
 VM_PERIOD = 60*3
 CONTAINER_PERIOD = 30
-SET_POINT_FACTOR = 1
+SET_POINT_FACTOR = .8
 APP_1_S_TIME=0.2 
 APP_2_S_TIME=0.2
 APP_MMC_S_TIME=0.2 
@@ -87,6 +87,18 @@ PPO_GUARD = GPPPOController(
     st=SET_POINT_FACTOR,
     name="GPPPOController",
     train=False
+)
+
+# GP-Enhanced Neural Network Controller (Hybrid NN+GP+PID)
+GP_INTELLIGENT_HPA = GPintellegentHPA(
+    period=SCALEX_PERIOD, 
+    init_cores=INIT_CORES, 
+    max_cores=MAX_CORES, 
+    st=SET_POINT_FACTOR,
+    name="GP-IntelligentHPA",
+    kp=2,        # PID proportional gain
+    ki=10,       # PID integral gain  
+    enable_log=True
 )
 
 # PPO_HYBRID = PPOController(
