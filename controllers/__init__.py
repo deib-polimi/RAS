@@ -11,5 +11,5 @@ from .stepcontroller import StepController
 from .rlcontroller import RLController
 from .controller import Controller
 from .circular import CircularArray
-from .ppocontroller import PPOController
-from .firmcontroller import FIRM_DDPG_Controller
+from .ppocontroller import PPOController, FuzzyPPOController
+from .firmcontroller import FirmController

@@ -121,8 +121,10 @@ class PPOController(Controller):
         return st
 
     def _reward(self):
-        ratio=self.monitoring.getRTp95()/self.setpoint
-        rew=-(10*max(ratio-1,0)+0.05*self.cores); self.prev_reward=rew; return rew
+        lat_ratio = self.monitoring.getRT() - self.setpoint
+        pen_lat = 0.6 * lat_ratio if lat_ratio > 0 else 0.4 * lat_ratio 
+        self.prev_reward = -abs(pen_lat) 
+        return -abs(pen_lat) 
 
     def _burst(self):
         return (self.prev_q is not None and (self.monitoring.getQueueLen()-self.prev_q)>self.burst_threshold_q) or \
@@ -163,3 +165,19 @@ class PPOController(Controller):
 
     def setTrain(self, train):
         self.train = train
+
+import random
+import math
+
+class FuzzyPPOController(PPOController):
+    std_ratio = 0.2
+    mean_ratio = 0
+    def control(self, t):
+        super().control(t)
+        mean_noise = self.mean_ratio * self.cores           
+        std_noise = self.std_ratio * abs(self.cores)
+        noise = random.gauss(mean_noise, std_noise)      
+        print(noise)  
+        self.cores = math.ceil(self.cores + noise)
+        self.cores = max(self.min_cores, min(self.cores, self.max_cores))
+        

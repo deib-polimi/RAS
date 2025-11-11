@@ -8,7 +8,7 @@ import time
 
 class RLController(Controller):
 
-    def __init__(self, period, init_cores, min_cores=1, max_cores=1000, st=0.8, name=None):
+    def __init__(self, period, init_cores, min_cores=1, max_cores=1000, st=0.8, name=None, train=True):
         
         super().__init__(period, init_cores, st, name=name)
         self.min_cores = min_cores
@@ -17,6 +17,7 @@ class RLController(Controller):
         self.q_table_path = "./controllers/rlcontroller.pkl"
         # Initialize Q-table as a dictionary for sparse representation
         self.Q = self.load_q_table()
+        self.train = train
 
         # Hyperparameters
         self.alpha = 0.05  # Learning rate
@@ -88,13 +89,14 @@ class RLController(Controller):
         if self.state != None:
             reward = self.reward()
             # Update Q-value
+           
             self.Q[self.state][self.action_index] = self.Q[self.state][self.action_index] + self.alpha * (reward + self.gamma * np.max(self.Q[new_state]) - self.Q[self.state][self.action_index])
 
         self.state = new_state    
         feasible_actions = self.feasible_actions()
         feasible_indices = [self.actions.index(action) for action in feasible_actions]
 
-        if random.uniform(0, 1) < self.epsilon:
+        if random.uniform(0, 1) < self.epsilon and self.train:
             self.action_index = random.choice(feasible_indices)
         else:
             self.action_index = max(feasible_indices, key=lambda index: self.Q[new_state][index])
@@ -107,6 +109,9 @@ class RLController(Controller):
         with open(self.log_path, 'a') as log_file:
             log_file.write(log + '\n')
 
-        self.save_q_table()
+        if self.train:
+            self.save_q_table()
         return action
     
+
+    def setTrain(self, train): self.train = train

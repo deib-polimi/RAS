@@ -32,9 +32,9 @@ GEN_SET_1 = [
 
 GEN_TRAIN_SET = [
     SinGen(500, 700, 200), 
-   # RampGen(10, 800),
-   # StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
-   # StepGen([50, 800, 1000], [50, 5000, 50]),
+    RampGen(10, 800),
+    StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
+    StepGen([50, 800, 1000], [50, 5000, 50]),
 
 ]
 
@@ -78,6 +78,15 @@ PPO = PPOController(
     name="PPOController"
 )
 
+PPO_FUZZY = FuzzyPPOController(
+    SCALEX_PERIOD, INIT_CORES,
+    min_cores=MIN_CORES, max_cores=MAX_CORES,
+    st=SET_POINT_FACTOR,
+    name="FuzzyPPOController"
+)
+
+
+
 PPO_GUARD = PPOController(
     SCALEX_PERIOD, INIT_CORES,
     min_cores=MIN_CORES, max_cores=MAX_CORES,
@@ -98,6 +107,18 @@ PPO_HYBRID = PPOController(
     burst_extra=3,
     trend_features=True          # aggiunge queue_delta e rate_delta
 )
+
+
+FIRM = controller = FirmController(
+    period=SCALEX_PERIOD, 
+    init_cores=INIT_CORES,
+    min_cores=MIN_CORES,
+    max_cores=MAX_CORES,
+    st=0.8, # Setpoint
+    train=True,
+    trend_features=False 
+)
+
 
 # APPS
 APPLICATION_1 = Application1(sla=APP_SLA, init_cores=INIT_CORES)
