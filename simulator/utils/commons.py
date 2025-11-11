@@ -4,18 +4,18 @@ from ..applications import *
 
 # CONSTANTS
 
-HORIZON = 1200
+HORIZON = 1000
 MONITORING_WINDOW = 1
 INIT_CORES = 5
 MIN_CORES = 1
-MAX_CORES = 60
+MAX_CORES = 100
 SCALEX_PERIOD = 1
 OPTCTRL_PERIOD = 1
 VM_PERIOD = 60*3
 CONTAINER_PERIOD = 30
 SET_POINT_FACTOR = .8
 APP_1_S_TIME=0.2 
-APP_2_S_TIME=0.2
+APP_2_S_TIME=0.4
 APP_MMC_S_TIME=0.2 
 APP_SLA = 0.4
 
@@ -33,7 +33,7 @@ GEN_SET_1 = [
 GEN_TRAIN_SET = [
    #SinGen(200, 220, 200), 
    SinGen(1000, 1100, 100),
-   #RampGen(10, 800),
+   #RampGen(10, 800)
    # StepGen(range(0, 1000, 100), range(0, 10000, 1000)),
    # StepGen([50, 800, 1000], [50, 5000, 50]),
 
@@ -100,6 +100,32 @@ GP_INTELLIGENT_HPA = GPintellegentHPA(
     ki=10,       # PID integral gain  
     enable_log=True
 )
+
+# Data Collection Controller for Training Data Generation
+DATA_COLLECTION = DataCollectionController(
+    period=SCALEX_PERIOD,  # Every 30 seconds
+    init_cores=INIT_CORES,
+    min_cores=MIN_CORES,
+    max_cores=MAX_CORES,
+    st=SET_POINT_FACTOR,
+    name="DataCollection",
+    exploration_strategy="random",
+    change_frequency=3,       # Change cores every 3 periods (90 seconds)
+    enable_log=True,
+    log_dir="./logs"
+)
+
+# ContinuousLearningHPA = ContinuousLearningHPA(
+#     period=SCALEX_PERIOD, 
+#     init_cores=INIT_CORES, 
+#     max_cores=MAX_CORES, 
+#     st=SET_POINT_FACTOR,
+#     kp=2,        # PID proportional gain
+#     ki=10,       # PID integral gain  
+#     enable_log=True,
+#     name="GPAdaptive-IntelligentHPA"
+# )
+# ContinuousLearningHPA.setSLA(0.4)  # Target 0.4s response time
 
 # PPO_HYBRID = PPOController(
 #     SCALEX_PERIOD, INIT_CORES,

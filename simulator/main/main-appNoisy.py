@@ -13,6 +13,7 @@ controllers = [
     #C.PPO_GUARD,
     C.IntelligentHPA
     #C.GP_INTELLIGENT_HPA
+    #C.ContinuousLearningHPA
 ]
 
 C.PPO.setTrain(False)

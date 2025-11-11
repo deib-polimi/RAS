@@ -16,3 +16,6 @@ from .gpppo_controller import GPPPOController
 from .firmcontroller import FIRM_DDPG_Controller
 from .faasconfcontroller import FaaSConfController
 from .intellegentHPA import intellegentHPA
+from .gpintellegenthpa import GPintellegentHPA
+from .datacollectioncontroller import DataCollectionController
+#from .continuouslearninghpa import ContinuousLearningHPA
